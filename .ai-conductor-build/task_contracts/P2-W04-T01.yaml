@@ -1,0 +1,153 @@
+# Task Contract — P2-W04-T01
+
+```yaml
+contract_version: 1
+id: P2-W04-T01
+phase: P2
+status: IMPLEMENTED
+
+authority:
+  blueprint: "2.4"
+  protocol: "1.0"
+  phase_manifest: "1.0"
+
+section_refs:
+  - "Blueprint §4.3 (Reconciliation Outcome mapping table)"
+  - "Blueprint §7 (Invariant 14 — Succeeded is verification-owned)"
+  - "Phase Manifest §6.3 P2-W04 (required direct test: reconciliation
+     result ≠ Succeeded transition)"
+
+objective: >
+  Prove, with a required direct test, that the Reconciliation Engine
+  (P2-W03) can never produce an `AttemptStatus::Succeeded` transition, and
+  that only the Verification Engine actor can. The structural half of
+  this (state.rs's `try_attempt_transition` gate restricting the
+  Running/Unknown → Succeeded edges to `TransitionActor::VerificationEngine`)
+  already existed from Phase 1 (AC-01 §5 / Invariant 14). What was
+  missing, and what this task adds, is (a) the actual outcome → next-action
+  mapping from Blueprint §4.3's table, which reconciliation.rs did not yet
+  have, and (b) a direct test tying `ReconciliationOutcome` to the state
+  engine's gate in one place, so the "never Succeeded" property is proven
+  at the boundary where these two modules actually meet, not just inferred
+  from each module's separate test suite.
+
+allowed_files:
+  - "PROJECT/crates/conductor-kernel/**"
+  - ".ai-conductor-build/task_contracts/P2-W04-T01.yaml"
+  - ".ai-conductor-build/verification_reports/P2-W04-T01.md"
+  - ".ai-conductor-build/BUILD_STATE.json"
+
+forbidden_files:
+  - "BLUEPRINT/**"
+  - "GOVERNANCE/**"
+  - "FAILURE_MEMORY/**"
+  - "KNOWLEDGE/**"
+  - "48 HOURS/**"
+
+forbidden_actions:
+  - "editing governing documents"
+  - "weakening state.rs's existing authorization gate (e.g. adding a new
+     TransitionActor variant that can also produce Succeeded, or loosening
+     the (Running, Succeeded)/(Unknown, Succeeded) match arm) -- P2-W04
+     exists to reinforce Invariant 14, not create a second door around it"
+  - "implementing the Verification Engine itself (Blueprint §7) -- out of
+     scope; this task only proves reconciliation cannot bypass it"
+  - "wiring MissionStatus::Paused for the Conflict outcome (Blueprint
+     §4.3's Conflict row also says 'mission PAUSED') -- that belongs to
+     the person decision path (P2-W07) which owns presenting the
+     four-way choice; this task's mapping function returns only an
+     AttemptStatus recommendation, not mission-level side effects"
+
+dependencies:
+  - "P2-W03-T01 (reconciliation engine) -- this task adds to
+     reconciliation.rs rather than replacing it."
+  - "P1 state.rs's try_attempt_transition / TransitionActor (already
+     enforces Invariant 14 structurally; this task proves reconciliation
+     cannot circumvent it, it does not re-implement the gate)."
+
+preconditions:
+  - "Phase 2 active."
+  - "ReconciliationOutcome and reconcile() exist (P2-W03)."
+  - "AttemptStatus / TransitionActor / try_attempt_transition exist and
+     already restrict Succeeded to VerificationEngine (P1 state.rs)."
+
+inputs:
+  - "Blueprint §4.3's outcome → next-action table."
+  - "state.rs's existing authorization gate, treated as the source of
+     truth to prove against, not something this task re-derives."
+
+outputs:
+  - "conductor-kernel::reconciliation::recommended_attempt_status(outcome:
+     &ReconciliationOutcome) -> Option<AttemptStatus> -- the Blueprint
+     §4.3 mapping, returning None for ExpectedChange specifically (defers
+     to the Verification Engine) and Some(AttemptStatus::Failed) for
+     every other outcome."
+
+implementation_requirements:
+  - "recommended_attempt_status must return None for ExpectedChange --
+     not Some(Succeeded), and not Some(anything) -- because Blueprint
+     §4.3 is explicit that ExpectedChange is only 'advisory-grade
+     evidence' and reconciliation's job 'ends at producing the outcome;
+     acceptance is a separate decision.' There is no AttemptStatus value
+     in this crate that means 'reconciliation thinks this succeeded' --
+     modeling that as anything other than None (deferral) would
+     reintroduce exactly the conflation Blueprint §4.3's own correction
+     fixed."
+  - "Every other outcome (NoChange, UnexpectedChange, PartialChange,
+     UserChangeDetected, Conflict) maps to Some(AttemptStatus::Failed),
+     per Blueprint §4.3's table -- each has different downstream handling
+     (targeted repair, mission pause, etc.) but that downstream routing
+     is explicitly out of scope here (P2-W05/W06/W07); this function
+     returns only the AttemptStatus."
+  - "A test must exhaustively check all six ReconciliationOutcome variants
+     against recommended_attempt_status and assert none of them equals
+     Some(AttemptStatus::Succeeded) -- the Phase Manifest's literal
+     required direct test ('reconciliation result ≠ Succeeded
+     transition'), not a spot-check of one or two variants."
+  - "A test must exercise the actual boundary: take reconcile()'s
+     ExpectedChange outcome (the case closest to success) and attempt
+     try_attempt_transition with every TransitionActor, confirming only
+     TransitionActor::VerificationEngine succeeds and every other actor
+     is rejected -- proving the two modules' properties compose correctly
+     where they actually connect, not just in isolation."
+
+invariants_preserved: ["1", "2", "8", "11", "14"]
+invariants_proven: ["14"]
+
+required_tests:
+  - "cargo test: exhaustive-variant test that
+     recommended_attempt_status never yields Some(Succeeded); a test that
+     ExpectedChange specifically yields None; a test that every other
+     outcome yields Some(Failed); an integration test tying a real
+     reconcile() ExpectedChange result to try_attempt_transition across
+     every TransitionActor, confirming only VerificationEngine is
+     authorized."
+
+acceptance:
+  - "All VG-P2-W04-T01 proofs evidenced in verification report."
+
+non_goals:
+  - "Mutation attribution (P2-W05); conflict detection (P2-W06); person
+     decision path (P2-W07); the Verification Engine itself (Blueprint
+     §7)."
+
+risk_level: low
+risk_notes: >
+  Small, additive change to an already-existing, already-tested module
+  (reconciliation.rs), composing with an already-existing, already-tested
+  gate (state.rs). The main risk is the same conflation Blueprint §4.3
+  explicitly warns against -- guarded here by recommended_attempt_status
+  returning None (not any AttemptStatus at all) for ExpectedChange, so
+  there is no representable value in this function's output that could be
+  mistaken for a success signal.
+
+done_when:
+  - "recommended_attempt_status is exhaustively proven to never produce
+     Some(AttemptStatus::Succeeded) for any of the six
+     ReconciliationOutcome variants. A real reconcile() ExpectedChange
+     result is proven, via try_attempt_transition, to be rejected for
+     every TransitionActor except VerificationEngine. The Reconciliation
+     Engine (P2-W03) still contains no code path capable of setting
+     Succeeded (re-confirmed, not just assumed carried over from
+     P2-W03's own tests)."
+```

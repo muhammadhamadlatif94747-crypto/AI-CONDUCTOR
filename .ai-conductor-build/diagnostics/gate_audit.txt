@@ -1,0 +1,1 @@
+﻿AC-01=True;AC-02=True;AC-03=True;AC-04=True;AC-05=True;AC-06=True;AC-07=True;AC-08=True;AC-09=True;AC-10=True;AC-11=True;AC-12=True;P1_CONTRACTS=True;P1_GATES=True

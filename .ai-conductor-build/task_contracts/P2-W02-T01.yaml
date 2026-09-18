@@ -1,0 +1,142 @@
+# Task Contract — P2-W02-T01
+
+```yaml
+contract_version: 1
+id: P2-W02-T01
+phase: P2
+status: IMPLEMENTED
+
+authority:
+  blueprint: "2.4"
+  protocol: "1.0"
+  phase_manifest: "1.0"
+
+section_refs:
+  - "Blueprint §4.4 (Evidence Model — Diff-Aware, Not Just Hash-Aware)"
+  - "Blueprint §4.6 (Mutation Attribution — \"capture the actual Git diff
+     ... at both the start and end of every attempt\")"
+  - "Blueprint §26.2 / Invariant 13 (Two-Phase Merge — baseline is what a
+     later re-check compares the live workspace against before merging)"
+  - "Phase Manifest §6.3 P2-W02"
+
+objective: >
+  Capture the expected baseline before an attempt executes, per Blueprint
+  §4.4's evidence example (`"baseline": {"App.tsx": "sha256:abc...", ...}`)
+  and §4.6's "capture baseline diff-state" step. This is the second half
+  of the pairing P2-W01 started: W01 proved an attempt gets an isolated
+  workspace; W02 proves that workspace's starting content is durably
+  recorded, per-file, before anything is allowed to change it -- so a
+  later reconciliation (P2-W03) or two-phase merge re-check (P2-W04+,
+  Invariant 13) has real ground truth to diff against rather than a
+  hash of "the repo" as an undifferentiated whole.
+
+allowed_files:
+  - "PROJECT/crates/conductor-kernel/**"
+  - ".ai-conductor-build/task_contracts/P2-W02-T01.yaml"
+  - ".ai-conductor-build/verification_reports/P2-W02-T01.md"
+  - ".ai-conductor-build/BUILD_STATE.json"
+
+forbidden_files:
+  - "BLUEPRINT/**"
+  - "GOVERNANCE/**"
+  - "FAILURE_MEMORY/**"
+  - "KNOWLEDGE/**"
+  - "48 HOURS/**"
+
+forbidden_actions:
+  - "editing governing documents"
+  - "implementing reconciliation (diff-region classification, P2-W03)"
+  - "implementing the two-phase merge lock itself (P2-W04+, Invariant 13)
+     -- this task produces the baseline that lock will later re-check
+     against; it does not implement the re-check or the merge"
+  - "mutation attribution classification (expected_conductor_change /
+     unexpected_ai_change / user_change / conflict_region -- P2-W05)"
+
+dependencies:
+  - "P2-W01-T01 (isolated worktree execution) -- baseline capture operates
+     on the AttemptWorkspace that module produces."
+
+preconditions:
+  - "Phase 2 active."
+  - "An AttemptWorkspace (worktree.rs) exists to capture a baseline from."
+
+inputs:
+  - "Blueprint §4.4's evidence JSON shape -- `baseline` is a map of
+     relative file path to content hash."
+  - "Blueprint §4.6 -- baseline capture happens once, at attempt start,
+     before Aider or any other mutator operates on the workspace."
+
+outputs:
+  - "conductor-kernel::baseline -- Baseline::capture(workspace_path) ->
+     Baseline { entries: BTreeMap<RelativePath, FileHash> }, plus a diff
+     helper that reports which paths changed/were added/were removed
+     against a re-capture, for later reconciliation/merge-recheck callers
+     to consume."
+
+implementation_requirements:
+  - "Baseline content matches Blueprint §4.4's shape: per-file content
+     hash (sha256, consistent with the hashing already used elsewhere in
+     the crate -- event.rs, chain_anchor.rs), keyed by path relative to
+     the workspace root, not an absolute path (so a baseline captured in
+     one workspace is meaningfully comparable to a re-capture in a
+     different, but logically-corresponding, workspace)."
+  - "Capture walks the actual filesystem of the given workspace path; it
+     does not shell out to `git diff`/`git status` for the initial
+     capture, since a freshly created worktree's baseline is simply
+     'what is on disk right now' -- Git-diffing is P2-W03's concern once
+     there is a 'before' and an 'after' to compare through Git's own
+     diff machinery. (Blueprint §4.6 phrases capture and later diffing as
+     two separate steps for exactly this reason.)"
+  - "`.git` metadata directory itself is excluded from the baseline --
+     it is not part of the tracked-file content an attempt is meant to
+     change, and its own internals mutate as a side effect of Git
+     operations unrelated to the attempt's actual edits."
+  - "Baseline capture must be a pure read: calling it must never modify
+     the workspace it reads from (a baseline that mutates what it's
+     baselining would invalidate itself)."
+  - "Provide a comparison function that, given two baselines (or a
+     baseline and a fresh capture), reports per-path Added / Removed /
+     Modified / Unchanged -- this is the primitive Invariant 13's
+     re-check and P2-W03's reconciliation both need; this task delivers
+     the primitive, not the policy built on top of it."
+
+invariants_preserved: ["1", "2", "8", "11"]
+invariants_proven: []
+
+required_tests:
+  - "cargo test: deterministic unit tests against real temporary
+     directories/worktrees (consistent with P2-W01's real-Git-only
+     testing discipline) -- capture of a clean workspace, detection of a
+     file modified/added/removed since capture, stability of the hash
+     for byte-identical content, sensitivity of the hash to a single
+     byte changing, exclusion of `.git` from captured entries, and a
+     capture-then-immediately-recapture-with-no-changes case producing
+     an empty diff."
+
+acceptance:
+  - "All VG-P2-W02-T01 proofs evidenced in verification report."
+
+non_goals:
+  - "Reconciliation Engine (P2-W03); protected Succeeded transition
+     (P2-W04); mutation attribution (P2-W05); conflict detection
+     (P2-W06); person decision path (P2-W07)."
+
+risk_level: low
+risk_notes: >
+  Pure filesystem read plus hashing, in the same style as prior P1
+  modules (event.rs, chain_anchor.rs already hash content with sha2) --
+  lower risk than P2-W01, which introduced the crate's first external
+  process dependency. The one real risk is silent scope drift toward
+  implementing comparison *policy* (what a Modified region means for
+  reconciliation) rather than the comparison *primitive* this task
+  actually owns; guarded by forbidden_actions above.
+
+done_when:
+  - "Baseline capture is proven: a workspace's tracked-file content is
+     recorded as per-file content hashes, keyed by relative path;
+     `.git` internals are excluded; the same content always produces
+     the same hash and any single-byte change produces a different one;
+     a diff between two baselines correctly reports Added/Removed/
+     Modified/Unchanged for a set of real filesystem changes; capturing
+     a baseline never mutates the workspace it reads."
+```

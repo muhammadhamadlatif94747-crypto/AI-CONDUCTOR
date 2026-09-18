@@ -1,0 +1,166 @@
+# Task Contract — P5-W01-T01
+
+```yaml
+contract_version: 1
+id: P5-W01-T01
+phase: P5
+status: IMPLEMENTED
+
+authority:
+  blueprint: "2.5.1"
+  protocol: "1.1"
+  execution_adapter_contract: "1.0"
+  phase_manifest: "1.1"
+
+section_refs:
+  - "Execution Adapter Contract v1.0, §§1-13 (Ownership Boundary,
+     Required Identity, Required Capabilities, Execution Request,
+     Execution Lifecycle, Start/Observe/Cancel/Evidence/Finalization,
+     Hard Authority Rules, Workspace Rule, Failure Contract)"
+  - "Phase Manifest §9.3 P5-W01 (\"Implement the common semantic adapter
+     boundary defined by the Blueprint and the dedicated Execution
+     Adapter Contract\")"
+  - "Phase Manifest §9.2 (objective: establish the replaceable
+     execution-harness boundary)"
+
+objective: >
+  Implement the Execution Adapter Contract's common semantic boundary as
+  a Rust trait (`ExecutionAdapter`) and its supporting types, faithful to
+  the contract document field-for-field, with the Hard Authority Rules
+  (§11) upheld structurally — the trait exposes no method capable of
+  setting `AttemptStatus::Succeeded`, authorizing a merge, or touching
+  `MergeDecision` at all, because it references none of those crate
+  modules. A `FakeExecutionAdapter` reference implementation proves the
+  trait is genuinely implementable, since no real executor (Aider,
+  Jcode) is available in this environment to validate against yet.
+
+allowed_files:
+  - "PROJECT/crates/conductor-kernel/**"
+  - ".ai-conductor-build/task_contracts/P5-W01-T01.yaml"
+  - ".ai-conductor-build/verification_reports/P5-W01-T01.md"
+  - ".ai-conductor-build/BUILD_STATE.json"
+
+forbidden_files:
+  - "BLUEPRINT/**"
+  - "GOVERNANCE/**"
+  - "FAILURE_MEMORY/**"
+  - "KNOWLEDGE/**"
+  - "48 HOURS/**"
+
+forbidden_actions:
+  - "editing governing documents"
+  - "claiming or attempting real executor validation (Aider/Jcode) --
+     confirmed by direct check in this session that neither is
+     installed in this sandbox, and no provider API keys exist to run
+     either even if installed. P5-W03 through P5-W08 explicitly require
+     a real executor; this task does not fake one. FakeExecutionAdapter
+     is clearly named and documented as a test double, never presented
+     as evidence of real-executor conformance."
+  - "implementing Executor Capability Snapshot recording/persistence
+     (P5-W02) -- this task defines the CapabilitySnapshot type; actually
+     recording and persisting a real executor's snapshot durably is
+     explicitly the next task's job."
+  - "referencing crate::state or crate::conflict from this module at all
+     -- the Hard Authority Rules (SS11: no direct Succeeded, no merge
+     authorization, no Conflict resolution) are upheld by this module
+     having literally no access to those types, not by a runtime check
+     that could be bypassed."
+  - "implementing a real secret-redaction engine for evidence collection
+     (SS9's 'secrets must be redacted') -- no real executor output
+     exists yet to redact from meaningfully; documented as the calling
+     code's responsibility when real evidence collection is built
+     against a real executor (P5-W03+), not invented here without
+     something real to validate the redaction against."
+
+dependencies:
+  - "P1's correlation.rs (CorrelationContext) -- ExecutionRequest's
+     correlation_ids field reuses it directly rather than a second
+     correlation concept."
+
+preconditions:
+  - "Phase 5 active."
+
+inputs:
+  - "Execution Adapter Contract v1.0's identity fields (§2), capability
+     list (§3), execution request shape (§4), lifecycle states (§5),
+     start/observe/cancel/evidence/finalize semantics (§§6-10), Hard
+     Authority Rules (§11), and failure taxonomy (§13) -- all reproduced
+     field-for-field / item-for-item."
+
+outputs:
+  - "conductor-kernel::execution_adapter -- ExecutorIdentity,
+     CapabilityValue (tri-state: Supported/Unsupported/Unknown),
+     CapabilitySnapshot (13 named capabilities, §3, verbatim),
+     ExecutionRequest, ExecutionState (9 variants, §5, verbatim, Unknown
+     mandatory), FinalizationClaim (4 variants, §10, verbatim),
+     FailureCategory (10 variants, §13's list plus Unknown, verbatim),
+     Observation (§7), CancellationReport (§8), EvidenceRefs (§9),
+     AdapterError, the ExecutionAdapter trait, and FakeExecutionAdapter
+     (a scripted test double proving the trait is implementable)."
+
+implementation_requirements:
+  - "CapabilitySnapshot has exactly the 13 capabilities §3 lists, each
+     CapabilityValue -- never a bool/Option<bool> that could conflate
+     'known false' with 'unknown', matching §3's explicit 'unknown
+     capabilities remain unknown' and 'must not fabricate capability
+     values.'"
+  - "ExecutionState has exactly the 9 states §5's diagram shows,
+     including Unknown as a first-class variant (not an Option::None) --
+     §5: 'Unknown is mandatory... report Unknown rather than invent
+     Failed or Completed.'"
+  - "FinalizationClaim is a DIFFERENT type from ExecutionState (not a
+     reused/aliased enum), and its variants are named *Claim
+     (CompletedClaim/FailedClaim/CancelledClaim/UnknownClaim) --
+     reinforcing §10's 'It does NOT authorize acceptance' at the type
+     level: a FinalizationClaim cannot be mistaken for or silently
+     substituted for an authoritative AttemptStatus."
+  - "The ExecutionAdapter trait's method set (identity, capabilities,
+     start, observe, cancel, collect_evidence, finalize) has no method
+     that accepts or returns any crate::state or crate::conflict type --
+     verified by this module having zero `use crate::state::*` /
+     `use crate::conflict::*` imports (grep-audited in the report)."
+  - "FakeExecutionAdapter is script-driven (mirroring provider.rs's
+     FakeProvider design precedent) and demonstrably implements the full
+     trait -- proven by a test that uses it purely through &dyn
+     ExecutionAdapter, not by calling its concrete methods directly."
+
+invariants_preserved: ["1", "2", "8", "11", "14"]
+invariants_proven: []
+
+required_tests:
+  - "cargo test: CapabilitySnapshot has exactly 13 named fields matching
+     §3; ExecutionState has exactly 9 variants including Unknown;
+     FinalizationClaim is a distinct type from ExecutionState with its
+     own 4 *Claim variants; FakeExecutionAdapter correctly implements
+     every trait method and is usable purely through a trait object;
+     a capability snapshot with an unknown capability is proven to
+     round-trip as Unknown, never silently defaulted to
+     Supported/Unsupported."
+
+acceptance:
+  - "All VG-P5-W01-T01 proofs evidenced in verification report."
+
+non_goals:
+  - "Executor Capability Snapshot recording/persistence (P5-W02);
+     Reference Executor Isolation (P5-W03) and everything after it that
+     requires a real executor -- explicitly blocked in this environment
+     by the absence of Aider/Jcode and provider credentials, stated
+     plainly rather than worked around."
+
+risk_level: low
+risk_notes: >
+  Pure type/trait definitions plus one test double, no I/O beyond what
+  FakeExecutionAdapter's tests exercise in memory. The main discipline
+  risk is scope creep into P5-W02's recording/persistence job or into
+  claiming real-executor validation that this environment cannot
+  actually perform -- guarded by forbidden_actions above.
+
+done_when:
+  - "ExecutionAdapter and its supporting types are proven faithful to
+     the Execution Adapter Contract's field lists (capabilities, states,
+     claims, failure categories) via dedicated tests, not just declared
+     to match by comment. FakeExecutionAdapter is proven to implement
+     the trait correctly through a trait object. The Hard Authority
+     Rules are proven structurally (grep audit: zero crate::state /
+     crate::conflict references in this module)."
+```

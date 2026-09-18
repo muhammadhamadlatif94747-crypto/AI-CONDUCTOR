@@ -1,0 +1,213 @@
+# Task Contract — P4-W01-T01
+
+```yaml
+contract_version: 1
+id: P4-W01-T01
+phase: P4
+status: IMPLEMENTED
+
+authority:
+  blueprint: "2.5.1"
+  protocol: "1.1"
+  phase_manifest: "1.1"
+
+section_refs:
+  - "Blueprint §7 (The Verification Engine — the eight-stage pipeline,
+     short-circuiting, RequirementVerificationClass)"
+  - "Blueprint §7.1 (The Verification Execution Sandbox — command
+     allowlist, working-directory restriction, timeout, resource limits,
+     network/filesystem/env/credential isolation, mutation detection,
+     OS-level process-tree containment)"
+  - "Phase Manifest §8.3 P4-W01 (\"Implement the full verification
+     pipeline defined by Blueprint Section 7\")"
+
+objective: >
+  Implement Blueprint §7's eight-stage verification pipeline
+  (filesystem evidence → diff verification → build → tests → lint/
+  typecheck → requirement verification → Mission Acceptance Contract
+  check → checkpoint accepted) with genuine short-circuiting, and a
+  command-execution boundary for the Build/Tests/Lint stages that
+  implements every part of §7.1's sandbox model this task can honestly
+  deliver in this environment — while being completely explicit, in
+  code and in this report, about the one part it cannot: real OS-level
+  process-tree containment (Windows job objects / Unix namespaces or
+  cgroups), which §7.1 itself says is what makes the difference between
+  an allowlist and an actual sandbox.
+
+allowed_files:
+  - "PROJECT/crates/conductor-kernel/**"
+  - ".ai-conductor-build/task_contracts/P4-W01-T01.yaml"
+  - ".ai-conductor-build/verification_reports/P4-W01-T01.md"
+  - ".ai-conductor-build/BUILD_STATE.json"
+
+forbidden_files:
+  - "BLUEPRINT/**"
+  - "GOVERNANCE/**"
+  - "FAILURE_MEMORY/**"
+  - "KNOWLEDGE/**"
+  - "48 HOURS/**"
+
+forbidden_actions:
+  - "editing governing documents"
+  - "claiming, in any doc comment, report, or test name, that the command
+     sandbox built here is secure against an adversarial/malicious
+     command. It is NOT. §7.1 is explicit that a command allowlist alone
+     is not a sandbox unless containment applies to the whole process
+     tree, enforced at the OS namespace/job-object level -- this task
+     does not implement that. What IS implemented (allowlist,
+     working-directory confinement, a real timeout, environment-variable
+     allowlisting via env_clear, and mutation detection reusing P2-W02's
+     Baseline) is a genuine, tested, but explicitly PARTIAL safeguard,
+     sufficient for running trusted/expected build-tool commands and
+     catching accidental misbehavior, NOT sufficient to safely run an
+     untrusted or adversarial acceptance-contract command. This
+     distinction must be stated plainly everywhere the sandbox is
+     described, not softened."
+  - "implementing real OS-level process-tree containment (job objects /
+     namespaces / cgroups) -- this is a substantial, platform-specific
+     systems-security undertaking that Blueprint SS7.1 itself says needs
+     'a dedicated test that deliberately tries to escape it.' Attempting
+     it inside this single task, in this sandboxed environment, without
+     the ability to properly validate OS-level isolation primitives on
+     each target platform, risks producing exactly the false-confidence
+     artifact this whole document exists to prevent: something that
+     LOOKS like a sandbox but is not proven to contain a determined
+     escape attempt. Deferred explicitly to a dedicated future task with
+     its own contract, its own platform-specific validation, and its own
+     escape-attempt test suite."
+  - "implementing network isolation -- blocking a child process's network
+     access without OS-level firewalling/namespace primitives is not
+     achievable via std::process::Command alone; not implemented, not
+     claimed to be implemented"
+  - "implementing the full RequirementVerificationClass / Mission
+     Acceptance Contract JSON schema (ids, descriptions, evidence
+     provenance/freshness requirements) -- Blueprint SS8's full schema is
+     explicitly P4-W03's job. This task defines RequirementVerificationClass
+     verbatim (three variants) and a minimal Requirement type just
+     sufficient to drive the requirement-verification stage's pass/fail
+     logic and the 'ModelAssisted alone can never satisfy blocking' rule
+     -- not the full contract schema."
+  - "implementing full structured Evidence with provenance/freshness
+     (Blueprint SS4.5) -- explicitly P4-W02's job. Each stage in this
+     task produces a minimal StageOutcome (stage, status, detail), not
+     the full Evidence record type."
+  - "setting AttemptStatus::Succeeded from pipeline logic, directly or
+     indirectly -- this task produces a PipelineResult (Pass/Fail); it
+     does not touch AttemptStatus at all. Wiring the pipeline's result to
+     the actual protected Succeeded transition is explicitly P4-W04's
+     job (Invariant 14)."
+
+dependencies:
+  - "P2-W02-T01 (Baseline) -- mutation detection for read-only-intended
+     verification commands reuses Baseline::capture/diff directly."
+  - "P2-W03-T01 (reconcile) -- the diff-verification stage reuses
+     reconcile()/ExpectedOperation rather than re-deriving whole-file
+     diff classification."
+
+preconditions:
+  - "Phase 4 active."
+
+inputs:
+  - "Blueprint §7's eight-stage pipeline diagram, reproduced as an
+     ordered enum with genuine short-circuiting."
+  - "Blueprint §7.1's sandbox requirement list, implemented wherever
+     achievable without OS-level primitives, and explicitly NOT
+     implemented (and stated as such) wherever it isn't."
+
+outputs:
+  - "conductor-kernel::verification -- VerificationStage (the eight
+     stages, verbatim), StageStatus, StageOutcome, PipelineResult,
+     RequirementVerificationClass (Blueprint SS7, three variants,
+     verbatim), Requirement (minimal), run_pipeline(...) ->
+     PipelineResult; VerificationCommand, SandboxError,
+     run_verification_command(...) -> Result<CommandOutcome, SandboxError>
+     (the partial, explicitly-labeled sandbox)."
+
+implementation_requirements:
+  - "run_pipeline executes stages in Blueprint §7's exact order and
+     genuinely short-circuits: a failed stage causes every later stage to
+     report StageStatus::SkippedDueToEarlierFailure rather than running
+     -- proven directly (a stage's own logic must never execute after an
+     earlier failure), not merely documented as intended behavior."
+  - "run_verification_command enforces, for real: (1) a command allowlist
+     -- only recognized build/test/lint runner prefixes, anything else
+     rejected before spawning; (2) working-directory confinement --
+     canonicalized and checked to be inside the given worktree root
+     before running, rejected otherwise; (3) a real timeout -- a
+     poll-loop against Child::try_wait() with a deadline, killing the
+     child if exceeded (this kills the immediate child only, NOT its
+     full descendant process tree -- stated as a known limitation
+     inherited from not having OS-level containment, not silently
+     assumed sufficient); (4) environment filtering via
+     Command::env_clear() plus an explicit allowlist of variables the
+     runner actually needs (e.g. PATH), so anything not explicitly
+     allowed -- including anything a future Credential Vault would
+     manage -- is never inherited."
+  - "Mutation detection for commands explicitly marked read-only-intended
+     (lint/typecheck stages) reuses Baseline::capture/diff (P2-W02): if
+     the workspace changed during a command that claimed not to touch
+     it, that is itself reported as a SandboxError, not silently
+     ignored."
+  - "RequirementVerificationClass::ModelAssisted structurally cannot, by
+     itself, satisfy a blocking requirement -- proven by a test that
+     constructs a blocking requirement backed only by ModelAssisted
+     evidence and confirms the requirement-verification stage reports it
+     unsatisfied, matching Blueprint §7's exact stated rule."
+
+invariants_preserved: ["1", "2", "6", "7", "8", "11", "13", "14"]
+invariants_proven: ["7"]
+
+required_tests:
+  - "cargo test: the eight stages run in Blueprint's exact order for an
+     all-pass pipeline; a failure at any given stage causes every later
+     stage to be skipped, not run (tested for at least the build/test
+     boundary and the requirement-verification/MAC-check boundary, the
+     two short-circuit points most likely to be gotten wrong); the
+     command allowlist rejects an unrecognized command; working-directory
+     confinement rejects a path outside the worktree; the timeout
+     actually kills a long-running child within a bounded, deterministic
+     wait (not a flaky real-time-dependent sleep); environment filtering
+     proves an arbitrary env var set on the test process is NOT visible
+     to the child process; mutation detection catches a read-only-marked
+     command that actually wrote to the workspace; ModelAssisted alone
+     cannot satisfy a blocking requirement."
+
+acceptance:
+  - "All VG-P4-W01-T01 proofs evidenced in verification report."
+
+non_goals:
+  - "OS-level process-tree containment (job objects/namespaces/cgroups)
+     and its escape-attempt test suite -- explicitly deferred to a
+     dedicated future task; network isolation; the full Mission
+     Acceptance Contract schema (P4-W03); full structured Evidence with
+     provenance/freshness (P4-W02); the protected Succeeded transition
+     (P4-W04)."
+
+risk_level: high
+risk_notes: >
+  This is the first task in the crate whose own subject matter is a
+  security boundary, not just reliability logic. The dominant risk is
+  not a bug in the usual sense -- it's the sandbox being described or
+  perceived as more secure than it actually is, which would be exactly
+  the false-confidence failure mode this whole Blueprint exists to
+  prevent, applied to security rather than correctness. Mitigated by
+  stating the gap (no OS-level process-tree containment, no network
+  isolation) explicitly and repeatedly -- in the module's own doc
+  comment, in this contract, and in the verification report -- rather
+  than once and then left to be forgotten. This module must not be
+  treated as safe to run against untrusted acceptance-contract commands
+  until the deferred OS-level containment task exists and passes its own
+  escape-attempt tests.
+
+done_when:
+  - "The eight-stage pipeline is proven to execute in order with genuine
+     short-circuiting. The partial sandbox's four real protections
+     (allowlist, working-directory confinement, timeout, environment
+     filtering) are each proven by a dedicated test against real process
+     execution, not simulated. Mutation detection is proven against a
+     real read-only-violating command. ModelAssisted's inability to
+     alone satisfy a blocking requirement is proven directly. The gap
+     between this partial sandbox and Blueprint SS7.1's full OS-level
+     containment model is stated explicitly in the module, the contract,
+     and the verification report."
+```

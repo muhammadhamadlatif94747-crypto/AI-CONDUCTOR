@@ -1,0 +1,154 @@
+# Task Contract — P3-W03-T01
+
+```yaml
+contract_version: 1
+id: P3-W03-T01
+phase: P3
+status: IMPLEMENTED
+
+authority:
+  blueprint: "2.5.1"
+  protocol: "1.1"
+  phase_manifest: "1.1"
+
+section_refs:
+  - "Blueprint §10.4 (Chaos Mode — eight categories with default
+     percentages; hard rule: every run records chaos_seed, scenario_id,
+     virtual_time_seed)"
+  - "Phase Manifest §7.3 P3-W03 (\"deterministic chaos injection...
+     must include simulated mid-attempt user edits\")"
+
+objective: >
+  Implement deterministic, seeded, replayable chaos injection over
+  Blueprint §10.4's eight categories, with a concrete, testable
+  implementation of the one category Phase Manifest explicitly singles
+  out: simulated mid-attempt user edits — proven, in this task, to
+  actually trigger P2-W06's Conflict detection end to end, not just
+  exist as an enum variant.
+
+allowed_files:
+  - "PROJECT/crates/conductor-kernel/**"
+  - ".ai-conductor-build/task_contracts/P3-W03-T01.yaml"
+  - ".ai-conductor-build/verification_reports/P3-W03-T01.md"
+  - ".ai-conductor-build/BUILD_STATE.json"
+
+forbidden_files:
+  - "BLUEPRINT/**"
+  - "GOVERNANCE/**"
+  - "FAILURE_MEMORY/**"
+  - "KNOWLEDGE/**"
+  - "48 HOURS/**"
+
+forbidden_actions:
+  - "editing governing documents"
+  - "implementing the Scenario DSL / simulator (P3-W04) -- this task
+     provides the chaos-injection primitive; connecting it to declarative
+     scenario files is P3-W04's job"
+  - "mechanically simulating ProcessTermination / CheckpointInterruption /
+     StatePersistenceInterruption as real kernel-testable actions -- these
+     represent chaos at the process and persistence layers, not the
+     provider-adapter layer; there is no attempt-execution orchestrator
+     yet for a 'process terminates mid-attempt' event to interrupt (the
+     same gap repeatedly confirmed since P2-W06: no mission/attempt
+     orchestration exists yet). These three categories exist in
+     ChaosCategory (for weight-rolling and recording fidelity to
+     Blueprint's eight-item checklist) but have no defined mechanical
+     effect in this task -- wiring them to something real is P3-W04's or
+     a later phase's job, once there is a real attempt lifecycle to
+     interrupt."
+  - "adding a general-purpose randomness crate (e.g. `rand`) -- a small,
+     self-contained, deterministic PRNG is implemented directly in this
+     module instead, consistent with this crate's established preference
+     for minimal new dependencies (no uuid, no async runtime added by
+     prior tasks either) and because the ONLY property actually required
+     here is exact seeded reproducibility, which a simple PRNG provides
+     just as well as a general-purpose crate would."
+  - "persisting chaos run records (chaos_seed/scenario_id/virtual_time_seed)
+     as durable events -- ChaosConfig exposes these fields for a caller to
+     record however it needs to; actually wiring that into the event log
+     is orchestration wiring for whichever task drives real chaos runs
+     end to end (P3-W04)"
+
+dependencies:
+  - "P2-W02-T01 (baseline capture) / P2-W06-T01 (conflict detection) --
+     the mid-attempt user edit's own required test proves it triggers
+     Conflict detection, using both."
+  - "P3-W01-T01 (FakeProvider) -- provider-layer chaos categories map to
+     FakeBehavior variants."
+
+preconditions:
+  - "Phase 3 active."
+  - "FakeBehavior (P3-W01), Baseline/check_merge_safety (P2-W02/W06)
+     exist."
+
+inputs:
+  - "Blueprint §10.4's eight chaos categories and their default
+     percentages, reproduced verbatim."
+
+outputs:
+  - "conductor-kernel::chaos -- ChaosCategory (all eight, verbatim),
+     ChaosConfig (chaos_seed/scenario_id/virtual_time_seed/weights),
+     ChaosEngine (seeded, deterministic, replayable roll()), and
+     simulate_user_edit_mid_attempt(workspace_root, target_path, seed)
+     -- a concrete, deterministic file mutation simulating a real
+     concurrent user edit."
+
+implementation_requirements:
+  - "ChaosCategory is exactly Blueprint SS10.4's eight categories, no
+     more, no fewer, with default_weight_percent matching the Blueprint's
+     percentages exactly (10/10/5/15/5/5/5/5)."
+  - "ChaosEngine::roll treats each category as an independent trial (not
+     a mutually-exclusive partition of one roll) -- Blueprint's own
+     composite-scenario example (SS28.5) combines MULTIPLE simultaneous
+     chaos events in one scenario, which independent trials support and
+     a single mutually-exclusive slice would not."
+  - "Determinism: two ChaosEngine instances constructed with the same
+     ChaosConfig (same chaos_seed) produce byte-identical roll()
+     sequences across any number of calls -- proven directly, not
+     asserted."
+  - "simulate_user_edit_mid_attempt is deterministic given the same seed
+     (same seed -> same exact appended content, proven by an exact-value
+     test, not just 'the file changed')."
+  - "The required test: simulate_user_edit_mid_attempt actually triggers
+     P2-W06's Conflict detection end to end -- capture a Baseline, run
+     the simulated edit, re-capture, run check_merge_safety, assert
+     Conflict. This is the concrete proof Phase Manifest SS7.3 P3-W03
+     asks for, not an isolated unit test of the chaos function alone."
+
+invariants_preserved: ["1", "2", "8", "13"]
+invariants_proven: []
+
+required_tests:
+  - "cargo test: all eight categories present with correct default
+     weights; roll() determinism (identical seed -> identical sequence,
+     any number of rolls); simulate_user_edit_mid_attempt determinism
+     (identical seed -> identical exact content); the end-to-end
+     mid-attempt-edit-triggers-Conflict integration test described
+     above."
+
+acceptance:
+  - "All VG-P3-W03-T01 proofs evidenced in verification report."
+
+non_goals:
+  - "Scenario DSL / simulator (P3-W04); mechanical simulation of
+     ProcessTermination/CheckpointInterruption/StatePersistenceInterruption;
+     persisting chaos run records as events; a general-purpose randomness
+     dependency."
+
+risk_level: low
+risk_notes: >
+  Self-contained PRNG plus pure file-mutation logic; the integration test
+  reuses already-tested P2 primitives (Baseline, check_merge_safety)
+  rather than adding new I/O risk. The main judgment call is scoping
+  three of the eight categories to "recorded but not mechanically
+  simulated," flagged explicitly above rather than either overreaching
+  into unbuilt orchestration or silently dropping them from the enum.
+
+done_when:
+  - "All eight ChaosCategory variants exist with Blueprint-exact default
+     weights. ChaosEngine::roll is proven deterministic across repeated
+     seeded runs. simulate_user_edit_mid_attempt is proven deterministic
+     by exact content. The mid-attempt-edit-triggers-Conflict integration
+     test passes, proving the one category Phase Manifest explicitly
+     requires actually does what it claims, end to end."
+```

@@ -1,0 +1,78 @@
+# Task Contract — P0-W01-T01
+
+```yaml
+contract_version: 1
+id: P0-W01-T01
+phase: P0
+status: IMPLEMENTED
+
+authority:
+  blueprint: "2.4"
+  protocol: "1.0"
+  phase_manifest: "1.0"
+
+section_refs:
+  - "Blueprint §4.2-4.3, §7, Invariants 7/11/14"
+  - "Phase Manifest P0-C01"
+  - "Task Contracts §29 (registry), §30 (construction order)"
+
+objective: >
+  Define AttemptStatus and ReconciliationOutcome as separate concepts with an
+  explicit structural transition table and transition authorization, so later
+  phases implement without reinterpretation.
+
+allowed_files:
+  - ".ai-conductor-build/architecture_changes/AC-01-attempt-reconciliation-contract.md"
+  - ".ai-conductor-build/task_contracts/P0-W01-T01.yaml"
+  - ".ai-conductor-build/verification_reports/P0-W01-T01.md"
+  - ".ai-conductor-build/BUILD_STATE.json"
+
+forbidden_files:
+  - "PROJECT/**"
+  - "BLUEPRINT/**"
+  - "GOVERNANCE/**"
+  - "FAILURE_MEMORY/**"
+  - "KNOWLEDGE/**"
+  - "48 HOURS/**"
+
+forbidden_actions:
+  - "any production code"
+  - "editing governing documents"
+
+dependencies:
+  - "P0-W00-T01 accepted"
+
+preconditions:
+  - "Phase 0 active."
+
+inputs:
+  - "Blueprint §4.2-4.3 text; Invariant 14."
+
+outputs:
+  - "AC-01 architecture contract."
+
+implementation_requirements:
+  - "Six-state AttemptStatus; six-outcome ReconciliationOutcome."
+  - "Explicit transition table incl. terminal edges."
+  - "Succeeded authority reserved exclusively to Verification Engine."
+  - "Reconciliation→consequence mapping including Conflict halting behavior."
+
+invariants_preserved: ["1","2","3","4","5","6","7","8","11","14"]
+invariants_proven: []
+
+required_tests:
+  - "Level 1 deterministic: contract self-checklist (no code exists to test yet)."
+
+acceptance:
+  - "Attempt status cannot be silently replaced by reconciliation classification — AC-01 §4."
+  - "Succeeded remains controlled by verification — AC-01 §5."
+  - "Reconciliation produces outcomes rather than declaring success — AC-01 §6."
+
+non_goals:
+  - "Mission/Step machines, cancellation internals, engine mechanics."
+
+risk_level: low
+
+done_when:
+  - "Verification report records all three required proofs present in AC-01."
+```

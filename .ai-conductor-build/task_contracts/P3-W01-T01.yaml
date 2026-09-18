@@ -1,0 +1,150 @@
+# Task Contract — P3-W01-T01
+
+```yaml
+contract_version: 1
+id: P3-W01-T01
+phase: P3
+status: IMPLEMENTED
+
+authority:
+  blueprint: "2.5.1"
+  protocol: "1.1"
+  phase_manifest: "1.1"
+
+section_refs:
+  - "Blueprint §10.1 (Provider Adapter — thickened ProviderRequest/ProviderResult)"
+  - "Blueprint §10.2 (Fake Provider — fault menu, FakeBehavior)"
+  - "Phase Manifest §7.3 P3-W01 (\"controllable fake provider with the
+     Blueprint-required fault menu\")"
+  - "Phase Manifest §7.5 (P3 gate: a failure scenario must be
+     deterministic + replayable + versioned + expected-outcome based +
+     simulator-runnable)"
+
+objective: >
+  Implement `ProviderAdapter`'s request/result shape (Blueprint §10.1)
+  and a `FakeProvider` implementing it with Blueprint §10.2's full fault
+  menu (`Success, Timeout, RateLimited, MalformedOutput, PartialOutput,
+  Disconnect, SlowResponse, Crash, DuplicateResponse,
+  InvalidToolRequest`), controllable via an explicit, ordered, exhaustible
+  script of behaviors — the deterministic, replayable foundation Phase 3's
+  later work packages (VirtualClock, Chaos Mode, Scenario execution) will
+  build on.
+
+allowed_files:
+  - "PROJECT/crates/conductor-kernel/**"
+  - ".ai-conductor-build/task_contracts/P3-W01-T01.yaml"
+  - ".ai-conductor-build/verification_reports/P3-W01-T01.md"
+  - ".ai-conductor-build/BUILD_STATE.json"
+
+forbidden_files:
+  - "BLUEPRINT/**"
+  - "GOVERNANCE/**"
+  - "FAILURE_MEMORY/**"
+  - "KNOWLEDGE/**"
+  - "48 HOURS/**"
+
+forbidden_actions:
+  - "editing governing documents"
+  - "implementing the VirtualClock (P3-W02) -- SlowResponse's Duration is
+     recorded as data on the result, not actually slept on and not
+     resolved against any clock; there is no clock abstraction in this
+     crate yet for it to be resolved against"
+  - "implementing Chaos Mode's seeded random injection (P3-W03) -- this
+     task's FakeProvider is script-driven (caller supplies the exact
+     ordered sequence of behaviors), not randomized; seeded randomness
+     over a script is P3-W03's job, layered on top of this primitive"
+  - "implementing the Scenario DSL / simulator (P3-W04)"
+  - "adding an async runtime dependency (tokio or equivalent) -- Blueprint
+     §10.1 specifies `async fn send()`, but no async runtime exists
+     anywhere in this crate yet, and every other module built so far
+     (P0-P2) is synchronous. Introducing a first-time async-runtime
+     dependency is a bigger architectural decision than a single task
+     should make unilaterally. This task implements `send` as a
+     synchronous function instead, documented as a deliberate, flagged
+     deviation from the Blueprint's literal trait signature for whichever
+     future task wires in a real (network-bound) provider adapter that
+     will actually need async I/O."
+
+dependencies: []
+
+preconditions:
+  - "Phase 3 active (VG-P2-PHASE-GATE PASSED, human-accepted)."
+
+inputs:
+  - "Blueprint §10.1's ProviderRequest/ProviderResult field lists,
+     reproduced as closely as this task's scope allows -- some fields
+     (capability_snapshot, raw_metadata, sanitized_metadata) are given
+     minimal placeholder shapes here rather than Section 10.3's full
+     capability-registry JSON shape, since that registry is not this
+     task's job to design; typed as `serde_json::Value` passthroughs so
+     later phases can populate them without a breaking change to this
+     struct."
+  - "Blueprint §10.2's FakeBehavior enum, reproduced verbatim."
+
+outputs:
+  - "conductor-kernel::provider -- ProviderRequest, ProviderResult,
+     ProviderError, FakeBehavior, and FakeProvider (a scripted,
+     synchronous implementation)."
+
+implementation_requirements:
+  - "FakeBehavior is exactly Blueprint §10.2's ten variants, no more, no
+     fewer."
+  - "FakeProvider is script-driven: behaviors are queued explicitly
+     (`push_behavior`), consumed in order (FIFO) by `send`. An empty
+     script on `send` is a fail-closed error (`ProviderError::ScriptExhausted`),
+     never a silent default to Success -- matching this crate's
+     established fail-closed discipline (baseline.rs, worktree.rs,
+     mutation_attribution.rs all fail closed on ambiguity rather than
+     guessing a safe-looking default)."
+  - "Each FakeBehavior maps to a specific, distinguishable outcome:
+     Success/SlowResponse/DuplicateResponse produce an `Ok(ProviderResult)`
+     (DuplicateResponse specifically re-returns the most recent successful
+     result, including its `provider_response_id`, to simulate a real
+     provider-side duplicate rather than fabricating a new one);
+     Timeout/RateLimited/MalformedOutput/PartialOutput/Disconnect/Crash/
+     InvalidToolRequest produce a distinguishable `Err(ProviderError)`
+     variant each -- a caller must be able to tell these apart
+     programmatically, not just from a string message."
+  - "DuplicateResponse with no prior successful result to duplicate is
+     itself a fail-closed error (`ProviderError::NoDuplicateAvailable`),
+     not a silently fabricated result."
+  - "No direct system-clock read anywhere in this module (AC-12,
+     crate-wide hard rule) -- SlowResponse's Duration is stored as data
+     on the result (`simulated_delay`), never used to actually sleep the
+     calling thread."
+
+invariants_preserved: ["1", "2", "8"]
+invariants_proven: []
+
+required_tests:
+  - "cargo test: one test per FakeBehavior variant confirming the correct,
+     distinguishable Ok/Err outcome; script-exhaustion fail-closed
+     behavior; DuplicateResponse correctly replays the prior successful
+     result's provider_response_id; DuplicateResponse with nothing to
+     duplicate fails closed; scripted behaviors are consumed in the exact
+     order queued (not randomly, not out of order)."
+
+acceptance:
+  - "All VG-P3-W01-T01 proofs evidenced in verification report."
+
+non_goals:
+  - "VirtualClock (P3-W02); Chaos Mode / seeded randomness (P3-W03);
+     Scenario DSL / simulator (P3-W04); a real (network-bound) provider
+     adapter implementation; async I/O."
+
+risk_level: low
+risk_notes: >
+  Pure in-memory state machine, no I/O, no external process -- lower risk
+  than P2-W01/P2-W05's real-process-dependent modules. The main judgment
+  call is the deliberate sync-vs-async deviation from Blueprint §10.1's
+  literal trait signature, flagged explicitly above and in code rather
+  than silently diverging.
+
+done_when:
+  - "All ten FakeBehavior variants produce a correct, distinguishable,
+     tested outcome. Script exhaustion and duplicate-with-nothing-to-
+     duplicate both fail closed, proven by dedicated tests. Behavior
+     ordering is proven deterministic (scripted order == execution
+     order), directly satisfying Phase Manifest SS7.5's 'deterministic +
+     replayable' requirement for this primitive."
+```

@@ -1,0 +1,161 @@
+# Task Contract — P4-W04-T01
+
+```yaml
+contract_version: 1
+id: P4-W04-T01
+phase: P4
+status: IMPLEMENTED
+
+authority:
+  blueprint: "2.5.1"
+  protocol: "1.1"
+  phase_manifest: "1.1"
+
+section_refs:
+  - "Blueprint §7, §8 (the Verification Engine and Mission Acceptance
+     Contracts, tied together into the one authorized path to Succeeded)"
+  - "Blueprint §3, Invariant 14 (\"only the Verification Engine may set
+     Succeeded\")"
+  - "Phase Manifest §8.3 P4-W04 (\"Prove: Only Verification Engine →
+     AttemptStatus::Succeeded\")"
+  - "Phase Manifest §8.4 (required tests: passing/failing acceptance
+     criteria, stale evidence, insufficient evidence, wrong verification
+     method, partial completion, false model success, reconciliation
+     that reports a favorable outcome without verification)"
+  - "Phase Manifest §8.5 (P4 gate: \"No code path other than the
+     Verification Engine may create Succeeded\")"
+
+objective: >
+  Compose P4-W01's pipeline, P4-W02's evidence, and P4-W03's Mission
+  Acceptance Contract evaluation into one Verification Engine decision,
+  and prove — against `state.rs`'s real, already-authorized gate
+  (established since P1, re-confirmed at P2-W04) — that the one function
+  permitted to call it for the `Succeeded` edge never does so unless
+  every one of Phase Manifest §8.4's eight required scenarios genuinely
+  passed. This is the task that finally closes the question every task
+  since P2-W04 has deferred: not just "who is authorized to call the
+  gate" (already solid), but "does the one caller who IS authorized only
+  call it when it has actually been earned."
+
+allowed_files:
+  - "PROJECT/crates/conductor-kernel/**"
+  - ".ai-conductor-build/task_contracts/P4-W04-T01.yaml"
+  - ".ai-conductor-build/verification_reports/P4-W04-T01.md"
+  - ".ai-conductor-build/BUILD_STATE.json"
+
+forbidden_files:
+  - "BLUEPRINT/**"
+  - "GOVERNANCE/**"
+  - "FAILURE_MEMORY/**"
+  - "KNOWLEDGE/**"
+  - "48 HOURS/**"
+
+forbidden_actions:
+  - "editing governing documents"
+  - "weakening or re-deriving state.rs's existing authorization gate --
+     this task composes against the real, already-accepted
+     try_attempt_transition (P1) exactly as it exists; it does not add a
+     new TransitionActor variant or loosen the Running/Unknown ->
+     Succeeded match arm"
+  - "modifying P4-W01/P4-W02/P4-W03's already-accepted modules -- this
+     task composes their outputs; two additional checks (verification-
+     method/observation-type compatibility, and requiring
+     IndependentlyVerified integrity for blocking criteria) are added as
+     this task's OWN layer on top of calling their existing functions,
+     not by changing evaluate_contract's or Evidence::matches' own
+     behavior. Both additions are explicitly flagged as this task's own
+     reasoned interpretation, since Blueprint's SS8 JSON schema doesn't
+     literally include either as a required_evidence field -- justified
+     by Principle 2/Invariant 7 (model output is advisory, never
+     authoritative) and Phase Manifest SS8.4's own required tests
+     ('wrong verification method', 'false model success'), which
+     neither P4-W02 nor P4-W03 individually covered."
+
+dependencies:
+  - "P4-W01-T01 (pipeline), P4-W02-T01 (Evidence), P4-W03-T01 (MAC
+     evaluation) -- all three composed directly."
+  - "P1's state.rs try_attempt_transition / TransitionActor -- the real
+     gate this task proves composition against, not a re-derived one."
+
+preconditions:
+  - "Phase 4 active; P4-W01, P4-W02, P4-W03 accepted."
+
+inputs:
+  - "Phase Manifest §8.4's eight required test scenarios, each mapped to
+     a specific, real, constructed case -- not asserted generically."
+
+outputs:
+  - "conductor-kernel::verification_engine -- SuccessDecision
+     (Succeed | Fail{reasons}), decide(...) -> SuccessDecision (composes
+     PipelineResult + MacEvaluationResult + the two additional checks),
+     attempt_succeeded_transition(&SuccessDecision) -> Result<(),
+     VerificationEngineError> (the one function in the crate permitted
+     to call try_attempt_transition for the Succeeded edge)."
+
+implementation_requirements:
+  - "decide() returns Succeed only if: the pipeline result passed
+     entirely (PipelineResult::all_passed), the MAC evaluation's blocking
+     criteria are all satisfied (MacEvaluationResult::all_blocking_satisfied),
+     every blocking criterion's evidence has observation_type compatible
+     with its criterion's verification_type (the 'wrong verification
+     method' check), and every blocking criterion's evidence has
+     IntegrityLevel::IndependentlyVerified (the 'false model success'
+     check, precisely because SelfReported evidence -- the model or its
+     own runner simply asserting success with nothing external
+     confirming it -- must never alone satisfy a blocking requirement,
+     mirroring the ModelAssisted rule P4-W01 already established for
+     RequirementVerificationClass)."
+  - "attempt_succeeded_transition calls
+     state::try_attempt_transition(TransitionActor::VerificationEngine,
+     Running, Succeeded) ONLY inside the Succeed branch -- the Fail
+     branch returns an error without reaching that call at all, proven
+     by testing that every one of the eight required-test scenarios
+     produces Fail and that only the passing-acceptance-criteria scenario
+     reaches Ok via the real state.rs gate."
+  - "Each of Phase Manifest §8.4's eight required scenarios is a
+     dedicated, separately-named test, not folded into one combined
+     case: passing acceptance criteria, failing acceptance criteria,
+     stale evidence, insufficient evidence, wrong verification method,
+     partial completion, false model success, reconciliation reporting a
+     favorable outcome without verification."
+
+invariants_preserved: ["1", "2", "6", "7", "8", "11", "13", "14"]
+invariants_proven: ["14"]
+
+required_tests:
+  - "cargo test: all eight Phase Manifest SS8.4 scenarios as separate
+     named tests; attempt_succeeded_transition's Succeed path proven
+     against the real state.rs gate (an actual Ok(()) from
+     try_attempt_transition, not simulated); every Fail scenario proven
+     to never reach Ok."
+
+acceptance:
+  - "All VG-P4-W04-T01 proofs evidenced in verification report."
+
+non_goals:
+  - "Building a real attempt-execution orchestrator that drives a
+     genuine attempt through this whole pipeline end to end -- that
+     remains unbuilt (the same gap confirmed since P2-W06); this task
+     proves the decision-and-gate composition is correct given
+     already-produced pipeline/evidence/MAC results, the same way
+     P4-W01/W02/W03 each operate on already-produced inputs rather than
+     driving a live attempt themselves."
+
+risk_level: high
+risk_notes: >
+  This is the task Phase Manifest itself frames as the proof point for
+  Invariant 14 across the whole Verification Engine. A bug here (a Fail
+  scenario that accidentally reaches Succeed) would be the single most
+  severe kind of defect this entire project has been built to prevent.
+  Mitigated by testing every required scenario as its own named test
+  against the real state.rs gate, and by keeping decide()'s logic as a
+  single, auditable conjunction of independently-testable checks rather
+  than nested conditionals that could hide a missed case.
+
+done_when:
+  - "All eight Phase Manifest SS8.4 scenarios are proven, individually
+     and by name, to produce the correct SuccessDecision. The passing
+     scenario is proven to reach a real Ok(()) via state.rs's actual
+     gate. Every failing scenario is proven to reach Err without ever
+     calling try_attempt_transition for Succeeded."
+```

@@ -1,0 +1,74 @@
+# Task Contract — P0-W03-T01
+
+```yaml
+contract_version: 1
+id: P0-W03-T01
+phase: P0
+status: IMPLEMENTED
+
+authority:
+  blueprint: "2.4"
+  protocol: "1.0"
+  phase_manifest: "1.0"
+
+section_refs:
+  - "Blueprint §4.7, §15"
+  - "Build State Specification §2.3, §12"
+  - "Phase Manifest P0-C03"
+
+objective: >
+  Define checkpoint semantics: constitution, protected state, validity, referencing,
+  and recovery usage — removing ambiguity before P1 persistence implementation.
+
+allowed_files:
+  - ".ai-conductor-build/architecture_changes/AC-03-checkpoint-semantics.md"
+  - ".ai-conductor-build/task_contracts/P0-W03-T01.yaml"
+  - ".ai-conductor-build/verification_reports/P0-W03-T01.md"
+  - ".ai-conductor-build/BUILD_STATE.json"
+
+forbidden_files:
+  - "PROJECT/**"
+  - "BLUEPRINT/**"
+  - "GOVERNANCE/**"
+  - "FAILURE_MEMORY/**"
+  - "KNOWLEDGE/**"
+  - "48 HOURS/**"
+
+forbidden_actions:
+  - "any production code"
+  - "editing governing documents"
+
+dependencies:
+  - "P0-W02-T01 accepted (AC-02 evidence rules consumed by validity V3)"
+
+preconditions:
+  - "Phase 0 active."
+
+inputs:
+  - "Blueprint §4.7/§4.8/§15; Build State Spec §12; AC-02."
+
+outputs:
+  - "AC-03 architecture contract."
+
+implementation_requirements:
+  - "Four mandatory parts exactly as Blueprint §4.7."
+  - "Validity rules fail-closed; invalid checkpoints retained not deleted."
+  - "Recovery sequence consumes checkpoints without rewriting them."
+
+invariants_preserved: ["1","3","5","8","9","15"]
+invariants_proven: []
+
+required_tests:
+  - "Level 1 deterministic: contract self-checklist."
+
+acceptance:
+  - "All five P0-C03 definitions present and consistent with Blueprint and AC-02."
+
+non_goals:
+  - "Event-chain internals (AC-04); outbox design (P1-W06); UI."
+
+risk_level: low
+
+done_when:
+  - "Verification report records all five required definitions present."
+```

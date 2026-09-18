@@ -1,0 +1,76 @@
+# Task Contract — P0-W08-T01
+
+```yaml
+contract_version: 1
+id: P0-W08-T01
+phase: P0
+status: IMPLEMENTED
+
+authority:
+  blueprint: "2.4"
+  protocol: "1.0"
+  phase_manifest: "1.0"
+
+section_refs:
+  - "Blueprint §8, §7, §4.3, §4.5"
+  - "Build Protocol §13"
+  - "Phase Manifest P0-C08"
+
+objective: >
+  Define the Mission Acceptance Contract format — per-criterion verification
+  method and evidence provenance/freshness expectations — before Phase 4
+  Verification Engine implementation.
+
+allowed_files:
+  - ".ai-conductor-build/architecture_changes/AC-08-mission-acceptance-contract.md"
+  - ".ai-conductor-build/task_contracts/P0-W08-T01.yaml"
+  - ".ai-conductor-build/verification_reports/P0-W08-T01.md"
+  - ".ai-conductor-build/BUILD_STATE.json"
+
+forbidden_files:
+  - "PROJECT/**"
+  - "BLUEPRINT/**"
+  - "GOVERNANCE/**"
+  - "FAILURE_MEMORY/**"
+  - "KNOWLEDGE/**"
+  - "48 HOURS/**"
+
+forbidden_actions:
+  - "any production code"
+  - "editing governing documents"
+
+dependencies:
+  - "P0-W07-T01 accepted (sandbox constrains criterion command execution)"
+  - "P0-W02-T01 accepted (evidence model consumed)"
+
+preconditions:
+  - "Phase 0 active."
+
+inputs:
+  - "Blueprint §8 format example; §7 classes; §4.3 combination rule."
+
+outputs:
+  - "AC-08 architecture contract."
+
+implementation_requirements:
+  - "Every criterion includes all four P0-C08 elements."
+  - "ModelAssisted never sufficient alone for blocking pass."
+  - "Blocking/non-blocking semantics and repair-request linkage stated."
+
+invariants_preserved: ["2","7","14"]
+invariants_proven: []
+
+required_tests:
+  - "Level 1 deterministic: contract self-checklist."
+
+acceptance:
+  - "Format consistent with Blueprint §8/§7/§4.3 and AC-02; no invented fields contradicting the Blueprint."
+
+non_goals:
+  - "Pipeline internals; repair mechanics; UI; sandbox implementation."
+
+risk_level: low
+
+done_when:
+  - "Verification report records all four required elements present per criterion."
+```

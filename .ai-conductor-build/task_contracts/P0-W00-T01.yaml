@@ -1,0 +1,103 @@
+# Task Contract — P0-W00-T01
+
+```yaml
+contract_version: 1
+id: P0-W00-T01
+phase: P0
+
+status: IN_PROGRESS
+
+authority:
+  blueprint: "2.4"
+  protocol: "1.0"
+  phase_manifest: "1.0"
+
+section_refs:
+  - "Build Protocol §4 (Build State is the memory of the project)"
+  - "Build Protocol §6 (Session Boot Protocol)"
+  - "Build State Specification §3 (Canonical File Layout), §5 (Canonical Top-Level Schema)"
+  - "Campaign §6 (First 60 Minutes — Mandatory Boot, Steps 3-6)"
+
+objective: >
+  Establish the durable build-state foundation: .ai-conductor-build/ directory
+  tree, BUILD_STATE.json conforming to the Build State Specification schema,
+  environment baseline recorded, and a git repository initialized with the
+  governing documents committed as the immutable baseline.
+
+allowed_files:
+  - ".ai-conductor-build/**"
+  - ".gitignore"
+  - "STOP_REPORT.md"
+
+forbidden_files:
+  - "BLUEPRINT/**"
+  - "GOVERNANCE/**"
+  - "FAILURE_MEMORY/**"
+  - "KNOWLEDGE/**"
+  - "48 HOURS/**"
+  - "PROJECT/**"
+
+allowed_artifacts:
+  - ".ai-conductor-build/BUILD_STATE.json"
+  - ".ai-conductor-build/task_contracts/P0-W00-T01.yaml"
+  - ".ai-conductor-build/verification_reports/P0-W00-T01.md"
+  - ".ai-conductor-build/diagnostics/environment_baseline.md"
+
+forbidden_artifacts:
+  - ".env"
+  - "*.secret"
+  - any file containing credentials
+
+allowed_commands:
+  - "git init / git add / git commit (baseline only)"
+  - "environment inspection commands (read-only probes)"
+  - "directory creation for .ai-conductor-build tree"
+
+forbidden_commands:
+  - "any production build/run command (none exists yet)"
+  - "network calls to external services"
+
+dependencies: []
+
+preconditions:
+  - "Governing documents are present and readable."
+  - "No prior BUILD_STATE.json exists (fresh start confirmed by inspection)."
+
+inputs:
+  - "Observed repository contents (9 governing documents, empty PROJECT/)."
+  - "Observed tool versions."
+
+outputs:
+  - ".ai-conductor-build/ full directory tree"
+  - ".ai-conductor-build/BUILD_STATE.json"
+  - "git repository with baseline commit"
+
+implementation_requirements:
+  - "BUILD_STATE.json must carry schema_version and all authority versions."
+  - "Unknowns must be recorded as UNKNOWN entries, not assumptions (U-0001..U-0003)."
+  - "No secrets in any committed artifact."
+
+invariants_preserved:
+  - "Invariant 8 — state transitions observable (baseline checkpoint recorded)."
+invariants_proven: []
+
+required_tests:
+  - "Level 1 (deterministic): BUILD_STATE.json parses as valid JSON and contains required top-level keys."
+
+acceptance:
+  - ".ai-conductor-build tree matches Build State Specification §3 layout."
+  - "BUILD_STATE.json validates against canonical top-level schema keys."
+  - "Git repository initialized; baseline commit contains governance docs + build-state scaffold + this contract."
+  - "Environment baseline documented with OBSERVED evidence per probe."
+
+non_goals:
+  - "Any production implementation code (Phase 0 remains no-code)."
+  - "Creating Phase 1+ contracts or gates."
+  - "Installing new tooling."
+
+risk_level: low
+
+done_when:
+  - "All acceptance items verified and recorded in the verification report."
+  - "BUILD_STATE updated to ACCEPTED for P0-W00-T01 with commit hash recorded."
+```

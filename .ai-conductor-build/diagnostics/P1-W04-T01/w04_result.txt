@@ -1,0 +1,87 @@
+EXIT=101
+===STDOUT===
+
+running 38 tests
+test cancellation::tests::audit_stage_list_matches_blueprint_14_exactly ... ok
+test cancellation::tests::exactly_three_values_with_stable_identities ... ok
+test cancellation::tests::no_value_shares_identity_with_attempt_status ... ok
+test cancellation::tests::only_cancelled_status_exists_on_attempt_no_detail_leak_possible ... ok
+test cancellation::tests::recording_actor_is_always_the_executor ... ok
+test cancellation::tests::recovery_consequences_match_blueprint ... ok
+test cancellation::tests::unknown_outcome_is_never_auto_advanceable ... ok
+test chain_anchor::tests::hex_helper_matches_known_vector ... ok
+test chain_anchor::tests::anchor_written_and_self_verifies ... ok
+test chain_anchor::tests::wrong_chain_id_anchor_is_rejected ... ok
+test event::tests::hash_is_deterministic_and_content_sensitive ... ok
+test event::tests::json_round_trip_preserves_fields ... ok
+test event::tests::link_verification_detects_broken_chain ... ok
+test event::tests::previous_hash_is_part_of_the_hash_input ... ok
+test event::tests::self_verification_detects_mutation ... ok
+test chain_anchor::tests::mutated_historical_event_fails_closed ... ok
+test event_log::tests::appends_chain_and_reopen_recovers_tail ... ok
+test event_log::tests::corrupt_line_fails_closed_at_open_and_read ... ok
+test event_log::tests::sequence_numbers_are_monotonic_from_one ... ok
+test event_log::tests::read_all_returns_events_in_order_and_verifiable ... ok
+test state::tests::attempt_table_is_exactly_ac01 ... ok
+test state::tests::attempt_terminal_states_have_no_outgoing_edges ... ok
+test state::tests::cancellation_path_only_may_cancel ... ok
+test state::tests::executor_edges_accept_executor_and_reject_others ... ok
+test state::tests::full_happy_path_walk_succeeds ... ok
+test state::tests::illegal_edge_reported_before_authorization ... ok
+test state::tests::mission_pause_resume_and_block_resume_walks ... ok
+test state::tests::mission_table_is_exactly_ac10 ... ok
+test state::tests::mission_terminal_states_have_no_outgoing_edges ... ok
+test state::tests::status_identity_strings_are_stable ... ok
+test state::tests::step_blocked_only_reachable_from_running ... ok
+test state::tests::step_table_is_exactly_ac10 ... ok
+test state::tests::succeeded_requires_verification_engine_from_running ... ok
+test state::tests::succeeded_requires_verification_engine_from_unknown ... ok
+test state::tests::unknown_cannot_go_to_running_cancelled_or_pending ... ok
+test event_log::tests::tampering_with_history_is_detectable_end_to_end ... ok
+test chain_anchor::tests::clean_chain_verifies_against_its_anchor ... FAILED
+test chain_anchor::tests::deleted_event_is_detected_via_anchor_ahead_of_log ... ok
+
+failures:
+
+---- chain_anchor::tests::clean_chain_verifies_against_its_anchor stdout ----
+
+thread 'chain_anchor::tests::clean_chain_verifies_against_its_anchor' (2344) panicked at crates\conductor-kernel\src\chain_anchor.rs:376:60:
+assertion `left == right` failed
+  left: 8
+ right: 6
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    chain_anchor::tests::clean_chain_verifies_against_its_anchor
+
+test result: FAILED. 37 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.82s
+
+
+===STDERR===
+   Compiling proc-macro2 v1.0.107
+   Compiling version_check v0.9.5
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.24
+   Compiling typenum v1.20.1
+   Compiling generic-array v0.14.7
+   Compiling serde_core v1.0.229
+   Compiling zmij v1.0.23
+   Compiling serde v1.0.229
+   Compiling thiserror v2.0.20
+   Compiling serde_json v1.0.151
+   Compiling block-buffer v0.10.4
+   Compiling crypto-common v0.1.7
+   Compiling digest v0.10.7
+   Compiling cfg-if v1.0.4
+   Compiling cpufeatures v0.2.17
+   Compiling memchr v2.8.3
+   Compiling syn v3.0.4
+   Compiling itoa v1.0.18
+   Compiling sha2 v0.10.9
+   Compiling thiserror-impl v2.0.20
+   Compiling serde_derive v1.0.229
+   Compiling conductor-kernel v0.1.0 (E:\AI-CONDUCTOR\PROJECT\crates\conductor-kernel)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 17m 45s
+     Running unittests src\lib.rs (PROJECT\target-w04\debug\deps\conductor_kernel-7e8a0c336ee98659.exe)
+error: test failed, to rerun pass `--lib`

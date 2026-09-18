@@ -1,0 +1,81 @@
+# Task Contract — P0-W05-T01
+
+```yaml
+contract_version: 1
+id: P0-W05-T01
+phase: P0
+status: IMPLEMENTED
+
+authority:
+  blueprint: "2.4"
+  protocol: "1.0"
+  phase_manifest: "1.0"
+
+section_refs:
+  - "Blueprint §9, §11"
+  - "Build Protocol §13"
+  - "Phase Manifest P0-C05"
+
+objective: >
+  Define the failure taxonomy contract: the seven taxonomy classes and the
+  structured FailureCategory — with Conflict represented explicitly — before
+  P1 recovery-protocol implementation.
+
+allowed_files:
+  - ".ai-conductor-build/architecture_changes/AC-05-failure-taxonomy.md"
+  - ".ai-conductor-build/task_contracts/P0-W05-T01.yaml"
+  - ".ai-conductor-build/verification_reports/P0-W05-T01.md"
+  - ".ai-conductor-build/BUILD_STATE.json"
+  - ".ai-conductor-build/architecture_changes/AC-09-two-phase-merge-git-edge-cases.md"
+
+forbidden_files:
+  - "PROJECT/**"
+  - "BLUEPRINT/**"
+  - "GOVERNANCE/**"
+  - "FAILURE_MEMORY/**"
+  - "KNOWLEDGE/**"
+  - "48 HOURS/**"
+
+forbidden_actions:
+  - "any production code"
+  - "editing governing documents"
+
+dependencies:
+  - "P0-W04-T01 accepted (construction order §30)"
+  - "P0-W01-T01 accepted (Conflict outcome semantics referenced)"
+
+preconditions:
+  - "Phase 0 active."
+
+inputs:
+  - "Blueprint §9 Structured Failure Classification; Blueprint §11 taxonomy table."
+  - "Reconciliation note: worktree-isolation content drafted under W05 label was
+     relocated to AC-09 DRAFT (W09 per Task Contracts §30 / Phase Manifest task map);
+     no governing document edited."
+
+outputs:
+  - "AC-05 architecture contract; AC-09 pre-staged draft."
+
+implementation_requirements:
+  - "Seven classes exactly per Blueprint §11, CONFLICT explicit."
+  - "FailureCategory four values exactly per Blueprint §9."
+  - "No new AttemptStatus values; boundary vs ReconciliationOutcome and CancellationOutcome stated."
+
+invariants_preserved: ["1","2","3","4","5","8","11"]
+invariants_proven: []
+
+required_tests:
+  - "Level 1 deterministic: contract self-checklist."
+
+acceptance:
+  - "Both P0-C05 required definitions present and consistent with Blueprint §9/§11,
+     AC-01, and AC-04's recovery sequence references."
+
+non_goals:
+  - "Retry/backoff policy internals; reconciliation algorithms; UI."
+
+risk_level: low
+
+done_when:
+  - "Verification report records both required definitions present."
+```

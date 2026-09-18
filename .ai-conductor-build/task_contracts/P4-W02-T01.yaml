@@ -1,0 +1,164 @@
+# Task Contract — P4-W02-T01
+
+```yaml
+contract_version: 1
+id: P4-W02-T01
+phase: P4
+status: IMPLEMENTED
+
+authority:
+  blueprint: "2.5.1"
+  protocol: "1.1"
+  phase_manifest: "1.1"
+
+section_refs:
+  - "Blueprint §4.5 (Evidence — Structured Provenance, Not a Simple
+     Ladder)"
+  - "Blueprint §8's `required_evidence` JSON shape (provenance,
+     max_freshness_seconds, execution_id) — cited as the consumer this
+     task's semantics must be compatible with, not built here"
+
+objective: >
+  Implement Blueprint §4.5's `Evidence` record with real provenance and
+  freshness semantics: freshness computed from an injected `Clock`
+  (P3-W02), never a direct system-time read; a real `matches` check
+  against a provenance/freshness/execution-id requirement, so a stale or
+  wrong-provenance or wrong-run observation genuinely cannot satisfy a
+  requirement that asked for something else. Evidence is constructible
+  directly from P4-W01's `StageOutcome`, so the pipeline's real stage
+  results become real Evidence records, not a separate, disconnected
+  concept.
+
+allowed_files:
+  - "PROJECT/crates/conductor-kernel/**"
+  - ".ai-conductor-build/task_contracts/P4-W02-T01.yaml"
+  - ".ai-conductor-build/verification_reports/P4-W02-T01.md"
+  - ".ai-conductor-build/BUILD_STATE.json"
+
+forbidden_files:
+  - "BLUEPRINT/**"
+  - "GOVERNANCE/**"
+  - "FAILURE_MEMORY/**"
+  - "KNOWLEDGE/**"
+  - "48 HOURS/**"
+
+forbidden_actions:
+  - "editing governing documents"
+  - "implementing the full Mission Acceptance Contract JSON schema
+     (ids, descriptions, verification.type/command, blocking) --
+     explicitly P4-W03's job. This task implements Evidence and a
+     provenance/freshness/execution-id match check against explicit
+     parameters, not a parsed MAC criterion object."
+  - "reading the system clock directly anywhere in this module --
+     Evidence's `produced_at_ms` and every freshness comparison take an
+     explicit `now_ms: u64` parameter (or a `&dyn Clock`, P3-W02),
+     matching AC-12's crate-wide hard rule and this crate's established
+     pattern in every prior module that touches time."
+  - "inventing additional EvidenceProvenance or Reproducibility variants
+     beyond what Blueprint §4.5 states verbatim -- those two enums ARE
+     fully specified in the Blueprint text and must be reproduced
+     exactly, not extended."
+  - "wiring Evidence into an actual Mission Acceptance Contract
+     enforcement path -- that's P4-W03; this task produces Evidence
+     records and the match-check primitive they'll be checked with, not
+     the contract-level orchestration."
+
+dependencies:
+  - "P4-W01-T01 (verification pipeline) -- Evidence::from_stage_outcome
+     constructs Evidence from a real StageOutcome."
+  - "P3-W02-T01 (VirtualClock) -- freshness is computed from injected
+     time, never SystemTime::now() directly."
+
+preconditions:
+  - "Phase 4 active; P4-W01 accepted."
+
+inputs:
+  - "Blueprint §4.5's Evidence struct and EvidenceProvenance enum,
+     reproduced verbatim. Reproducibility (Deterministic | Flaky |
+     Unknown) is given verbatim in the Blueprint's own code comment."
+
+outputs:
+  - "conductor-kernel::evidence -- Evidence, EvidenceProvenance
+     (verbatim), Reproducibility (verbatim), ObservationType (NOT
+     verbatim -- Blueprint references this type but does not enumerate
+     its variants anywhere read for this task; a minimal, explicitly
+     interpreted set is defined here, documented as an interpretation
+     rather than presented as if found in the text), IntegrityLevel
+     (same situation -- Blueprint's own field comment 'verified
+     independently, or only reported' is treated as literally defining
+     two variants, not extended further), and a real
+     provenance/freshness/execution-id match check."
+
+implementation_requirements:
+  - "Evidence's fields match Blueprint §4.5's struct exactly:
+     provenance, observation_type, freshness-relevant produced_at_ms
+     (Blueprint shows `freshness: Duration` directly; this task stores
+     the producing timestamp instead and computes freshness on demand
+     against a caller-supplied `now_ms`, since a fixed Duration captured
+     once would go stale the moment time passes -- documented as a
+     deliberate, small deviation for correctness, not a silent
+     reinterpretation), execution_id, source, reproducibility,
+     integrity. A `result: bool` field is added beyond Blueprint's
+     minimal snippet -- documented explicitly as necessary: evidence
+     with no recorded observed outcome cannot usefully satisfy anything,
+     and §8's MAC criteria compare against an actual result."
+  - "EvidenceProvenance is exactly the six variants Blueprint §4.5 lists,
+     verbatim: ModelClaim, ProcessObservation, FilesystemObservation,
+     LocalTestRunner, CiSystem, ExternalSystemObservation."
+  - "Reproducibility is exactly Deterministic | Flaky | Unknown, per the
+     Blueprint's own inline comment."
+  - "Evidence::freshness_relative_to(now_ms) -> Duration and
+     Evidence::is_fresh(max_freshness, now_ms) -> bool both take an
+     explicit now_ms, proven never to call SystemTime::now() (grep
+     audit, same method used for every prior clock-related task)."
+  - "Evidence::matches(provenance, max_freshness, execution_id, now_ms)
+     -> bool checks all three dimensions Blueprint §8's required_evidence
+     names (provenance, freshness, execution_id) and fails the match if
+     ANY one is wrong -- proven by dedicated tests for each dimension
+     failing independently, not just an all-correct case passing."
+  - "Evidence::from_stage_outcome(&StageOutcome, ...) constructs a real
+     Evidence from a real P4-W01 pipeline stage result, with `result`
+     set from the stage's actual Passed/Failed status, not assumed true."
+
+invariants_preserved: ["1", "2", "8"]
+invariants_proven: []
+
+required_tests:
+  - "cargo test: EvidenceProvenance and Reproducibility have exactly
+     their stated variants; freshness is computed correctly from
+     produced_at_ms and a later now_ms (exact Duration, not
+     approximate); is_fresh correctly distinguishes fresh vs. stale
+     against a max_freshness boundary; matches() fails independently for
+     wrong provenance, for staleness, and for wrong execution_id (three
+     separate tests, not one combined case); matches() succeeds when
+     provenance, freshness, and execution_id are all correct;
+     from_stage_outcome correctly reflects a real StageOutcome's actual
+     Passed/Failed status into Evidence.result; no direct SystemTime
+     read anywhere in the module (grep-audited in the report)."
+
+acceptance:
+  - "All VG-P4-W02-T01 proofs evidenced in verification report."
+
+non_goals:
+  - "The full Mission Acceptance Contract schema and enforcement
+     (P4-W03); the protected success transition (P4-W04)."
+
+risk_level: low
+risk_notes: >
+  Pure data/logic module, no I/O, composing only already-accepted P4-W01
+  output and P3-W02's clock discipline. The only real risk is silently
+  inventing Blueprint content that wasn't actually specified
+  (ObservationType/IntegrityLevel's exact variants) and presenting it as
+  authoritative -- mitigated by stating explicitly, in the module and
+  this contract, that those two are interpretations, not verbatim
+  reproductions, unlike EvidenceProvenance/Reproducibility which are.
+
+done_when:
+  - "Evidence, EvidenceProvenance, and Reproducibility match Blueprint
+     §4.5 exactly (the latter two verbatim). Freshness/staleness
+     computation is proven exact and clock-injected, never reading real
+     time directly. matches() is proven to fail independently on each of
+     the three required dimensions, not just proven to pass when
+     everything is correct. Evidence is proven constructible from a real
+     P4-W01 StageOutcome with its actual result preserved."
+```

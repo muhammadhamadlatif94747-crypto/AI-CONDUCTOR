@@ -1,0 +1,155 @@
+# Task Contract — P2-W07-T01
+
+```yaml
+contract_version: 1
+id: P2-W07-T01
+phase: P2
+status: IMPLEMENTED
+
+authority:
+  blueprint: "2.5.1"
+  protocol: "1.1"
+  phase_manifest: "1.1"
+
+section_refs:
+  - "Blueprint §4.3 (four-way choice: [Keep user version] [Keep AI
+     version] [Merge] [Review diff])"
+  - "Blueprint §3, Invariant 11 (\"Conflict never auto-resolves... the
+     only safe action is to stop and ask\")"
+  - "Blueprint §21 / AC-07 (plain, functional UI discipline — same
+     precedent P1-W11's console.rs already established)"
+  - "Phase Manifest §6.3 P2-W07 (\"functional decision UI, not polished
+     Mission Mode\")"
+
+objective: >
+  Implement the four-way person decision path Blueprint §4.3 requires
+  once P2-W06's `decide_merge` returns `Halt`: render the conflict's real
+  evidence (from `ConflictReason`) in plain text a person can actually
+  read, accept one of the four choices
+  (KeepUserVersion/KeepAiVersion/Merge/ReviewDiff), and record that
+  choice as a durable, real event — mirroring P1-W11's console.rs
+  precedent exactly (real store reads/writes, no mocked state, every
+  outcome logged, never silently dropped).
+
+allowed_files:
+  - "PROJECT/crates/conductor-kernel/**"
+  - ".ai-conductor-build/task_contracts/P2-W07-T01.yaml"
+  - ".ai-conductor-build/verification_reports/P2-W07-T01.md"
+  - ".ai-conductor-build/BUILD_STATE.json"
+
+forbidden_files:
+  - "BLUEPRINT/**"
+  - "GOVERNANCE/**"
+  - "FAILURE_MEMORY/**"
+  - "KNOWLEDGE/**"
+  - "48 HOURS/**"
+
+forbidden_actions:
+  - "editing governing documents"
+  - "executing the chosen resolution -- i.e. actually writing files to
+     keep the user's version, keep the AI's version, or perform a merge.
+     P2-W06's contract already scoped 'performing the merge write itself'
+     and 'the workspace mutation lock' out of that task; the same
+     boundary holds here. This task's job ends at durably recording WHAT
+     the person chose, not carrying it out -- there is still no lock and
+     no merge-executor task built yet for a 'Merge' or 'Keep AI version'
+     choice to safely act through"
+  - "driving any MissionStatus transition (state.rs still has no
+     actor-authorization wrapper for mission-level transitions --
+     re-confirmed before writing this task, same finding as P2-W06)"
+  - "building a graphical or web UI -- Phase Manifest's own words:
+     'functional decision UI, not polished Mission Mode', same
+     plain-text discipline P1-W11's console.rs already established and
+     that this task reuses rather than replaces"
+
+dependencies:
+  - "P2-W06-T01 (conflict detection) -- consumes ConflictReason."
+  - "P1-W11-T01 (console) -- reuses EventLog/NewEvent/StorePaths exactly
+     as request_attempt_cancellation does, rather than inventing a
+     second persistence path for decisions."
+
+preconditions:
+  - "Phase 2 active."
+  - "ConflictReason exists (P2-W06)."
+  - "console.rs's EventLog-backed recording pattern exists (P1-W11)."
+
+inputs:
+  - "Blueprint §4.3's four-way choice, reproduced verbatim."
+  - "console.rs's request_attempt_cancellation as the pattern to mirror:
+     real store read/write, no special-cased bypass, every outcome
+     (including denial) written as a real event."
+
+outputs:
+  - "conductor-kernel::person_decision -- PersonDecision (the four-way
+     choice), describe_conflict(&ConflictReason) -> String (plain-text
+     evidence rendering), render_decision_prompt(&ConflictReason) ->
+     String (the actual text a person would see, listing all four
+     options), and record_person_decision(store_dir, context, reason,
+     decision, now_ms) -> Result<(), ConsoleError> (durable event write,
+     mirroring console.rs's cancellation-recording pattern exactly)."
+
+implementation_requirements:
+  - "PersonDecision is exactly Blueprint §4.3's four options -- no fifth
+     'auto-resolve' option, matching Invariant 11 by construction (there
+     is no variant that skips asking)."
+  - "describe_conflict renders the ACTUAL evidence carried by
+     ConflictReason (real changed paths, real conflicting regions with
+     their line ranges) -- not a generic 'a conflict occurred' string.
+     Tested by asserting the real path/range values appear in the
+     rendered text, not just that a string is non-empty."
+  - "record_person_decision writes a real event via the same
+     EventLog::open / NewEvent / StorePaths path console.rs's
+     request_attempt_cancellation already uses -- no second persistence
+     mechanism invented for this task."
+  - "No direct system-clock read anywhere in this module (AC-12, the
+     crate-wide hard rule already documented in lib.rs) -- now_ms is
+     caller-supplied, exactly like every other event-writing call site
+     in this crate."
+  - "ReviewDiff is recorded exactly like the three terminal choices --
+     it is a legitimate fourth option, not a special case to reject or
+     handle differently at the recording layer. Its non-terminal nature
+     (a person may ReviewDiff any number of times before eventually
+     choosing one of the other three) is documented as informational
+     metadata (PersonDecision::is_terminal), not enforced as a state
+     machine in this task -- there is no decision-loop orchestrator yet
+     for it to be enforced against, and inventing one would be reaching
+     into orchestration this task doesn't own."
+
+invariants_preserved: ["1", "2", "6", "8", "11", "13"]
+invariants_proven: ["11"]
+
+required_tests:
+  - "cargo test: describe_conflict renders real evidence for both
+     MergeTimeDrift and RegionOverlap (and Both) reasons, provably (the
+     actual path/range values are asserted present in the output, not
+     just non-emptiness); render_decision_prompt lists all four options;
+     record_person_decision writes a real, readable event for each of
+     the four PersonDecision variants (real EventLog, real temp store
+     directory, read back and asserted); PersonDecision's four variants
+     are exhaustively distinct from any AttemptStatus/MissionStatus
+     value (no accidental conflation with the state machines)."
+
+acceptance:
+  - "All VG-P2-W07-T01 proofs evidenced in verification report."
+
+non_goals:
+  - "Executing the chosen resolution (merge write); MissionStatus
+     transition wiring; a decision-loop orchestrator enforcing
+     ReviewDiff-then-terminal ordering; any GUI."
+
+risk_level: low
+risk_notes: >
+  Additive to an already-proven pattern (console.rs's event-recording
+  path) rather than new infrastructure. The main risk is the same one
+  flagged in P2-W06: temptation to reach into executing the decision to
+  make the feature feel "complete" before the merge-executor and lock
+  this would require actually exist. Guarded by forbidden_actions above.
+
+done_when:
+  - "describe_conflict is proven to surface real evidence (paths, region
+     ranges) rather than generic text, for every ConflictReason variant.
+     record_person_decision is proven, for all four PersonDecision
+     variants, to write a real event that can be read back with the
+     decision intact. render_decision_prompt is proven to list all four
+     options by name."
+```

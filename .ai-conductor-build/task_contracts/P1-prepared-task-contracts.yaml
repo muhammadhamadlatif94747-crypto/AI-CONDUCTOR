@@ -1,0 +1,105 @@
+# Prepared Task Contracts — Phase 1 (State + Event + Persistence Core)
+# Task: P0-W13-T01 (Phase 0 deliverable — preparation only; no production code)
+#
+# Per Phase Manifest §4.6 ("task contracts for Phase 1 are ready") and Task
+# Contracts §30. Each entry below is a complete bounded contract; instantiation
+# at task start adds only status/timestamps. Sources: Phase Manifest §5.3,
+# Blueprint §23 Phase 1 checklist, Build Protocol §9.
+
+phase: P1
+manifest_version: "1.0"
+
+common:
+  forbidden_files: ["BLUEPRINT/**", "GOVERNANCE/**", "FAILURE_MEMORY/**", "KNOWLEDGE/**", "48 HOURS/**"]
+  forbidden_actions: ["editing governing documents", "bypassing the State Engine", "integrating real Aider/providers (P1 non-goal)"]
+  authority: { blueprint: "2.4", protocol: "1.0", phase_manifest: "1.0" }
+
+contracts:
+
+  - id: P1-W01-T01
+    title: State Engine with enforced transition table
+    section_refs: ["Blueprint §4.2, §4.2.1", "AC-01", "AC-10"]
+    allowed_files: ["PROJECT/** (state engine module + tests)", ".ai-conductor-build/BUILD_STATE.json"]
+    done_when:
+      - "legal transitions accepted; illegal rejected; tests exercise invalid transitions"
+      - "semantics match AC-01 attempt table and AC-10 mission/step tables"
+
+  - id: P1-W02-T01
+    title: CancellationOutcome as its own enum
+    section_refs: ["Blueprint §14", "AC-05 §4 boundary rules"]
+    allowed_files: ["PROJECT/** (cancellation types + tests)", ".ai-conductor-build/BUILD_STATE.json"]
+    done_when:
+      - "CancelledClean | CancelledWithChanges | CancellationUnknown implemented"
+      - "no cancellation detail leaks into AttemptStatus (type-level proof)"
+
+  - id: P1-W03-T01
+    title: Append-only JSONL event log with hash chaining
+    section_refs: ["Blueprint §4.9", "AC-04"]
+    allowed_files: ["PROJECT/** (event log module + tests)", ".ai-conductor-build/BUILD_STATE.json"]
+    done_when:
+      - "event_hash chains over payload + previous_event_hash per AC-04 rule"
+      - "append-only enforced (no update/delete path); tamper test detects mutation"
+
+  - id: P1-W04-T01
+    title: Event-chain anchoring + verification on load
+    section_refs: ["Blueprint §4.9", "AC-04 §3"]
+    allowed_files: ["PROJECT/** (anchor store + load verifier + tests)", ".ai-conductor-build/BUILD_STATE.json"]
+    done_when:
+      - "anchors persisted to separate location at checkpoint cadence"
+      - "load-time chain check fail-closed: verification failure blocks auto-recovery"
+
+  - id: P1-W05-T01
+    title: Atomic persistence everywhere state is written
+    section_refs: ["Blueprint §4.8 V4", "AC-03", "F-0001 regression rule"]
+    allowed_files: ["PROJECT/** (atomic writer + crash tests)", ".ai-conductor-build/BUILD_STATE.json"]
+    done_when:
+      - "temp-file + rename pattern on every persisted record; no partial states observable"
+      - "single-writer serialization honored (F-0001 regression test)"
+
+  - id: P1-W06-T01
+    title: Outbox / intent mechanism
+    section_refs: ["Blueprint §20 / Invariant 15", "AC-03"]
+    allowed_files: ["PROJECT/** (outbox module + interruption tests)", ".ai-conductor-build/BUILD_STATE.json"]
+    done_when:
+      - "multi-record transitions durable via recorded intent"
+      - "interruption tests: intent completed or reconciled on restart, never lost/half-applied"
+
+  - id: P1-W07-T01
+    title: Idempotency-key store (local retry detection)
+    section_refs: ["Blueprint §10.5, §20", "AC-11 §4"]
+    allowed_files: ["PROJECT/** (idempotency_store + tests)", ".ai-conductor-build/BUILD_STATE.json"]
+    done_when:
+      - "retry detects 'already applied' locally"
+      - "store never upgrades IdempotencySupport classification (AC-11 separation asserted in code/tests)"
+
+  - id: P1-W08-T01
+    title: Monotonic sequence allocator
+    section_refs: ["Blueprint §4.9", "Phase Manifest P1-W08"]
+    allowed_files: ["PROJECT/** (sequence allocator + tests)", ".ai-conductor-build/BUILD_STATE.json"]
+    done_when:
+      - "strictly monotonic event sequence numbers across restart"
+      - "monotonicity test incl. crash-mid-allocate recovery"
+
+  - id: P1-W09-T01
+    title: Correlation IDs through canonical hierarchy
+    section_refs: ["Phase Manifest P1-W09", "AC-04 event shape"]
+    allowed_files: ["PROJECT/** (ID plumbing + propagation tests)", ".ai-conductor-build/BUILD_STATE.json"]
+    done_when:
+      - "mission→step→attempt→event→provider_request→tool_call threading"
+      - "no independent ad hoc ID systems introduced"
+
+  - id: P1-W10-T01
+    title: Schema versioning on every persisted record
+    section_refs: ["Blueprint §4.7 / Invariant 9", "BUILD_STATE schema_version precedent"]
+    allowed_files: ["PROJECT/** (versioned record types + migration hooks + tests)", ".ai-conductor-build/BUILD_STATE.json"]
+    done_when:
+      - "every persisted record carries schema_version"
+      - "unknown-version handling fails closed; migration path stubbed per Blueprint §4.8"
+
+  - id: P1-W11-T01
+    title: Developer Reliability Console (functional)
+    section_refs: ["Blueprint §21", "AC-07 (console actions pass capability boundary)"]
+    allowed_files: ["PROJECT/** (console + tests)", ".ai-conductor-build/BUILD_STATE.json"]
+    done_when:
+      - "plain functional console renders mission/event/state truth"
+      - "explicitly not the polished Mission Mode UI; console mutations obey capability table"

@@ -1,0 +1,1063 @@
+{
+  "schema_version": "1.0",
+  "authority": {
+    "blueprint_version": "2.5.1",
+    "protocol_version": "1.1",
+    "phase_manifest_version": "1.1",
+    "task_contract_schema_version": "1.1",
+    "verification_gate_version": "1.1",
+    "campaign": "AI_CONDUCTOR_OX_ALPHA_48_HOUR_EXECUTION_CAMPAIGN_v1.0"
+  },
+  "project": {
+    "project_id": "ac-project-001",
+    "name": "AI Conductor",
+    "root_path": "E:\\AI-CONDUCTOR",
+    "repository_type": "git",
+    "repository_status": "NOT_INITIALIZED_AT_INSPECTION",
+    "initial_repository_fingerprint": null,
+    "created_at": "2026-08-26T05:27:15+05:00",
+    "notes": [
+      "At first inspection the workspace contained only the 9 governing documents in 5 folders (48 HOURS, BLUEPRINT, FAILURE_MEMORY, GOVERNANCE, KNOWLEDGE) plus an empty PROJECT/ directory.",
+      "No source code, no Cargo workspace, no package manifests existed at inspection time.",
+      "PROJECT/ is an empty placeholder directory; canonical implementation root to be decided by P0-W00 baseline task."
+    ]
+  },
+  "current_phase": {
+    "id": "P5",
+    "name": "Execution Harness Adapter + Real Executor Validation",
+    "status": "IN_PROGRESS",
+    "manifest_version": "1.1",
+    "entry_checkpoint": "CK-P4-PHASE-GATE",
+    "entry_commit": "2d055e3 (P4 phase-gate; VG-P4-PHASE-GATE PASSED)",
+    "tasks_total": 8,
+    "tasks_accepted": 2,
+    "tasks_blocked": 3,
+    "tasks_failed": 0,
+    "phase_gate_id": "VG-P5-PHASE-GATE",
+    "phase_gate_status": "NOT_READY",
+    "known_environment_constraint": "REFINED this session (no production code touched): the blocker is not simply 'no executor installed' -- Aider 0.86.2 was OBSERVED present on the human's machine at 2026-08-26T05:27:15+05:00 inspection (see environment_baseline.md), but (a) that presence has not been reconfirmed since, (b) no provider API keys have been observed available in any session to date, so even a present Aider binary cannot be driven end-to-end, and (c) Jcode has never been observed installed anywhere. This takeover session's own sandbox additionally has neither binary and a restricted egress allowlist. Full detail: .ai-conductor-build/verification_reports/P5-REAL-EXECUTOR-READINESS.md (U-0004).",
+    "p5_certification_boundary": {
+      "structural_synthetic_conformance": "ALLOWED -- implemented and exercised in crates/conductor-kernel/src/conformance.rs (27 tests, all synthetic-adapter-based)",
+      "real_executor_certification": "BLOCKED until a real executor and required credentials/environment actually exist (see unknowns[U-0004])",
+      "P5-W03": "BLOCKED",
+      "P5-W04": "BLOCKED pending the real-execution boundary P5-W03 would establish",
+      "P5-W05": "BLOCKED pending real execution AND the actual reconciliation::reconcile()/IdempotencyStore integration documented as deferred (TODO(P5-W05)) in conformance.rs",
+      "rule": "Synthetic evidence must never be treated as real evidence at any point in this chain -- structurally enforced by ConformanceSuiteReport::disposition(), see conformance.rs",
+      "recorded_at": "2026-09-12T00:00:00+00:00"
+    }
+  },
+  "previous_phase_P0_summary": {
+    "final_status": "COMPLETED_AND_ACCEPTED",
+    "tasks_accepted": "15/15",
+    "phase_gate": "VG-P0-PHASE-GATE PASSED",
+    "gate_report": ".ai-conductor-build/verification_reports/VG-P0-PHASE-GATE.md"
+  },
+  "current_task": null,
+  "task_history": {
+    "P0-W00-T01": {
+      "status": "ACCEPTED",
+      "contract_version": 1,
+      "gate_id": "VG-P0-W00-T01",
+      "verification_report": ".ai-conductor-build/verification_reports/P0-W00-T01.md",
+      "checkpoint": "CK-P0-000",
+      "commit": "23d732db1cd7f0d3e2957c0473eccaf642f7e486",
+      "accepted_at": "2026-08-26T05:45:00+05:00"
+    },
+    "P0-W01-T01": {
+      "status": "ACCEPTED",
+      "contract_version": 1,
+      "gate_id": "VG-P0-W01-T01",
+      "verification_report": ".ai-conductor-build/verification_reports/P0-W01-T01.md",
+      "artifact": ".ai-conductor-build/architecture_changes/AC-01-attempt-reconciliation-contract.md",
+      "commit": "46c25e1e8c2fa1ebd6d92a62bf07da00d5ea898b",
+      "accepted_at": "2026-08-26T06:05:00+05:00"
+    },
+    "P0-W02-T01": {
+      "status": "ACCEPTED",
+      "contract_version": 1,
+      "gate_id": "VG-P0-W02-T01",
+      "verification_report": ".ai-conductor-build/verification_reports/P0-W02-T01.md",
+      "artifact": ".ai-conductor-build/architecture_changes/AC-02-evidence-provenance-freshness.md",
+      "commit": "2ef3ebb1466e90b9336210768c125d7ed405b466",
+      "accepted_at": "2026-08-26T06:35:00+05:00"
+    },
+    "P0-W03-T01": {
+      "status": "ACCEPTED",
+      "contract_version": 1,
+      "gate_id": "VG-P0-W03-T01",
+      "verification_report": ".ai-conductor-build/verification_reports/P0-W03-T01.md",
+      "artifact": ".ai-conductor-build/architecture_changes/AC-03-checkpoint-semantics.md",
+      "commit": "782a1f6935d3a280f404aaf761dca885996529de",
+      "accepted_at": "2026-08-26T06:55:00+05:00"
+    },
+    "P0-W04-T01": {
+      "status": "ACCEPTED",
+      "contract_version": 1,
+      "gate_id": "VG-P0-W04-T01",
+      "verification_report": ".ai-conductor-build/verification_reports/P0-W04-T01.md",
+      "artifact": ".ai-conductor-build/architecture_changes/AC-04-event-chain.md",
+      "accepted_at": "2026-08-26T07:15:00+05:00"
+    },
+    "P0-W05-T01": {
+      "status": "ACCEPTED",
+      "contract_version": 1,
+      "gate_id": "VG-P0-W05-T01",
+      "verification_report": ".ai-conductor-build/verification_reports/P0-W05-T01.md",
+      "artifact": ".ai-conductor-build/architecture_changes/AC-05-failure-taxonomy.md",
+      "note": "Order reconciliation: worktree-isolation draft relocated to AC-09 DRAFT (W09 per Task Contracts \u00a730); see verification report audit note.",
+      "commit": "02a61e94983892005cd7bce4412269b705c6b36d",
+      "accepted_at": "2026-08-26T07:45:00+05:00"
+    },
+    "P0-W06-T01": {
+      "status": "ACCEPTED",
+      "contract_version": 1,
+      "gate_id": "VG-P0-W06-T01",
+      "verification_report": ".ai-conductor-build/verification_reports/P0-W06-T01.md",
+      "artifact": ".ai-conductor-build/architecture_changes/AC-06-skill-contract.md",
+      "commit": "b2f5fa3d71d9750fae521b0f7dd55e73df455e17",
+      "accepted_at": "2026-08-26T08:05:00+05:00"
+    },
+    "P0-W07-T01": {
+      "status": "ACCEPTED",
+      "contract_version": 1,
+      "gate_id": "VG-P0-W07-T01",
+      "verification_report": ".ai-conductor-build/verification_reports/P0-W07-T01.md",
+      "artifact": ".ai-conductor-build/architecture_changes/AC-07-capability-table-tool-boundary.md",
+      "commit": "4635da087e478aedcb997f76df622a93de4ca781",
+      "accepted_at": "2026-08-26T08:30:00+05:00"
+    },
+    "P0-W08-T01": {
+      "status": "ACCEPTED",
+      "contract_version": 1,
+      "gate_id": "VG-P0-W08-T01",
+      "verification_report": ".ai-conductor-build/verification_reports/P0-W08-T01.md",
+      "artifact": ".ai-conductor-build/architecture_changes/AC-08-mission-acceptance-contract.md",
+      "commit": "d51885d2cc7713958a6961951b1ab2731bf7d8a0",
+      "accepted_at": "2026-08-26T09:00:00+05:00"
+    },
+    "P0-W09-T01": {
+      "status": "ACCEPTED",
+      "contract_version": 1,
+      "gate_id": "VG-P0-W09-T01",
+      "verification_report": ".ai-conductor-build/verification_reports/P0-W09-T01.md",
+      "artifact": ".ai-conductor-build/architecture_changes/AC-09-two-phase-merge-git-edge-cases.md",
+      "note": "Formalized from pre-staged draft (P0-W05 order reconciliation).",
+      "commit": "0134adf2562a92d887c245b9f9dede7ef3330b7b",
+      "accepted_at": "2026-08-26T09:25:00+05:00"
+    },
+    "P1-W01-T01": {
+      "status": "ACCEPTED",
+      "contract_version": 1,
+      "gate_id": "VG-P1-W01-T01",
+      "verification_report": ".ai-conductor-build/verification_reports/P1-W01-T01.md",
+      "artifact": "PROJECT/crates/conductor-kernel/src/state.rs",
+      "tests_passing": 15,
+      "commit": "0b5843d213b156996d32a0f13aeeb1bdeed00f0f",
+      "accepted_at": "2026-08-26T12:45:00+05:00"
+    },
+    "P1-W02-T01": {
+      "status": "ACCEPTED",
+      "contract_version": 1,
+      "gate_id": "VG-P1-W02-T01",
+      "verification_report": ".ai-conductor-build/verification_reports/P1-W02-T01.md",
+      "artifact": "PROJECT/crates/conductor-kernel/src/cancellation.rs",
+      "tests_passing": 22,
+      "commit": "374c9eaf400d2cb64f7437a3a44cd5f2806a695d",
+      "accepted_at": "2026-08-26T13:10:00+05:00"
+    },
+    "P1-W03-T01": {
+      "status": "ACCEPTED",
+      "contract_version": 1,
+      "gate_id": "VG-P1-W03-T01",
+      "verification_report": ".ai-conductor-build/verification_reports/P1-W03-T01.md",
+      "artifact": "PROJECT/crates/conductor-kernel/src/event_log.rs",
+      "tests_passing": 32,
+      "commit": "874f70c34b5ff39cea4919af0be477f276d232cb",
+      "accepted_at": "2026-08-26T13:40:00+05:00"
+    },
+    "P0-W14-T01": {
+      "status": "ACCEPTED",
+      "contract_version": 1,
+      "gate_id": "VG-P0-W14-T01",
+      "verification_report": ".ai-conductor-build/verification_reports/P0-W14-T01.md",
+      "artifact": ".ai-conductor-build/verification_gates/P1-prepared-verification-gates.yaml",
+      "commit": "4b91dd8a7ff6afa8648cfb1d3f21f66d72ecb0f4",
+      "accepted_at": "2026-08-26T11:30:00+05:00"
+    },
+    "P0-W11-T01": {
+      "status": "ACCEPTED",
+      "contract_version": 1,
+      "gate_id": "VG-P0-W11-T01",
+      "verification_report": ".ai-conductor-build/verification_reports/P0-W11-T01.md",
+      "artifact": ".ai-conductor-build/architecture_changes/AC-11-external-side-effect-idempotency.md",
+      "commit": "ca1ace680102510e207e54da908b5c50f408d647",
+      "accepted_at": "2026-08-26T10:15:00+05:00"
+    },
+    "P0-W12-T01": {
+      "status": "ACCEPTED",
+      "contract_version": 1,
+      "gate_id": "VG-P0-W12-T01",
+      "verification_report": ".ai-conductor-build/verification_reports/P0-W12-T01.md",
+      "artifact": ".ai-conductor-build/architecture_changes/AC-12-clock-trait.md",
+      "commit": "43aef02d479fa22c3e9f2bbaa7e24b532adbea23",
+      "accepted_at": "2026-08-26T10:40:00+05:00"
+    },
+    "P0-W13-T01": {
+      "status": "ACCEPTED",
+      "contract_version": 1,
+      "gate_id": "VG-P0-W13-T01",
+      "verification_report": ".ai-conductor-build/verification_reports/P0-W13-T01.md",
+      "artifact": ".ai-conductor-build/task_contracts/P1-prepared-task-contracts.yaml",
+      "commit": "c1181c009635ff2912e99f2b278ff243aef97dc9",
+      "accepted_at": "2026-08-26T11:05:00+05:00"
+    },
+    "P1-W04-T01": {
+      "status": "ACCEPTED",
+      "contract_version": 1,
+      "gate_id": "VG-P1-W04-T01",
+      "verification_report": ".ai-conductor-build/verification_reports/P1-W04-T01.md",
+      "artifact": "PROJECT/crates/conductor-kernel/src/chain_anchor.rs",
+      "tests_passing": 38,
+      "note": "Independent takeover audit found the inherited working-tree state FAILED 1/38 (off-by-two test assertion, chain_anchor.rs:376). Fixed (test-only change, no production logic touched) and re-verified before acceptance.",
+      "commit": "db371066042e13ab9aafd5045c2e8ffcfa0a237b",
+      "accepted_at": "2026-08-27T00:00:00+00:00"
+    },
+    "P1-W05-T01": {
+      "status": "ACCEPTED",
+      "contract_version": 1,
+      "gate_id": "VG-P1-W05-T01",
+      "verification_report": ".ai-conductor-build/verification_reports/P1-W05-T01.md",
+      "artifact": "PROJECT/crates/conductor-kernel/src/persist.rs",
+      "tests_passing": 45,
+      "note": "Ambiguity flagged and resolved: VG-P1-W05-T01's proof phrase '(test runs forever)' read as a permanent corpus regression test, not a literal non-terminating test. Also corrected a stale lib.rs doc comment ('no I/O of any kind in this crate') that had been true only of state.rs at P1-W01 and was never updated as event_log.rs/chain_anchor.rs added I/O by design.",
+      "commit": "318bb8d8f2218e27bbf96c06b97c3574847d0d32",
+      "accepted_at": "2026-08-27T00:30:00+00:00"
+    },
+    "P1-W06-T01": {
+      "status": "ACCEPTED",
+      "contract_version": 1,
+      "gate_id": "VG-P1-W06-T01",
+      "verification_report": ".ai-conductor-build/verification_reports/P1-W06-T01.md",
+      "artifact": "PROJECT/crates/conductor-kernel/src/outbox.rs",
+      "tests_passing": 55,
+      "note": "Outbox/intent mechanism per Blueprint Invariant 15 / Section 20. Independently built and verified in this takeover session (not pre-existing): begin_intent/mark_step_complete/retire_intent/pending() over the P1-W05 AtomicStore primitive. Core proof (VG-P1-W06-T01): interruption_mid_outbox_is_recovered_and_replayed_exactly_once simulates a crash by dropping the Outbox handle mid-sequence (1 of 3 steps marked complete) and opening a fresh handle over the same file, asserting recovery resumes from exactly the unfinished steps. A second scenario covers interruption before any step ran at all.",
+      "commit": "22fa8a844cc5becb1d887bf4865b0ea10b2f6af9",
+      "accepted_at": "2026-08-27T00:00:00+00:00"
+    },
+    "P1-W07-T01": {
+      "status": "ACCEPTED",
+      "contract_version": 1,
+      "gate_id": "VG-P1-W07-T01",
+      "verification_report": ".ai-conductor-build/verification_reports/P1-W07-T01.md",
+      "artifact": "PROJECT/crates/conductor-kernel/src/idempotency.rs, PROJECT/crates/conductor-kernel/src/idempotency_store.rs",
+      "tests_passing": 69,
+      "note": "Two-artifact split per AC-11 \u00a74: idempotency.rs (IdempotencySupport classification + safe_to_skip_retry) and idempotency_store.rs (local already-applied store, built on P1-W05 AtomicStore). AC-11 separation enforced via a structural field-pin test on IdempotencyRecord (key, outcome only \u2014 no classification field), an exhaustive 3x2 decision-table test, and an end-to-end cross-module test proving a local record never makes an Unknown-classified provider safe to skip.",
+      "commit": "48054676fa24dc7e8717e3f438558ea91a493f8a",
+      "accepted_at": "2026-08-27T01:00:00+00:00"
+    },
+    "P1-W08-T01": {
+      "status": "ACCEPTED",
+      "contract_version": 1,
+      "gate_id": "VG-P1-W08-T01",
+      "verification_report": ".ai-conductor-build/verification_reports/P1-W08-T01.md",
+      "artifact": "PROJECT/crates/conductor-kernel/src/sequence.rs",
+      "tests_passing": 74,
+      "note": "SequenceAllocator over the P1-W05 AtomicStore, standalone from event_log.rs's own per-file tail-derived counter (this feeds sequence_number for callers that need a number before the record carrying it is fully built, e.g. outbox intents). Crash-mid-allocate proof reproduces the exact on-disk shape of a crash between temp-file-write and rename (orphaned sibling file, never renamed) and confirms the real store is untouched and recovery issues the correct next value with no duplicate/rollback.",
+      "commit": "ebe4a1f291e0894a093e6b52d3cc9f99d49b3cd1",
+      "accepted_at": "2026-08-27T02:00:00+00:00"
+    },
+    "P1-W09-T01": {
+      "status": "ACCEPTED",
+      "contract_version": 1,
+      "gate_id": "VG-P1-W09-T01",
+      "verification_report": ".ai-conductor-build/verification_reports/P1-W09-T01.md",
+      "artifact": "PROJECT/crates/conductor-kernel/src/correlation.rs",
+      "tests_passing": 85,
+      "note": "correlation.rs: one canonical ID type per hierarchy level (MissionId, StepId, AttemptId, ProviderRequestId, ToolCallId) plus CorrelationContext, whose with_* builders enforce mission->step->attempt->provider_request->tool_call ordering fail-closed (a child level cannot be set without its parent). event.rs::EventContext is now a type alias for CorrelationContext rather than its own struct, so the event log inherits the hierarchy instead of defining a competing one; Event::computed_hash needed no change since it already serializes the context generically, so the hash is automatically sensitive to the newly-added provider_request_id/tool_call_id levels. Pre-existing out-of-hierarchy identifiers (outbox.rs intent_id, chain_anchor.rs chain_id) audited and left untouched as genuinely separate concepts.",
+      "commit": "6328d8177149fb770008d302f67bdf0e2c538bee",
+      "accepted_at": "2026-08-27T03:00:00+00:00"
+    },
+    "P1-W10-T01": {
+      "status": "ACCEPTED",
+      "contract_version": 1,
+      "gate_id": "VG-P1-W10-T01",
+      "verification_report": ".ai-conductor-build/verification_reports/P1-W10-T01.md",
+      "artifact": "PROJECT/crates/conductor-kernel/src/schema.rs",
+      "tests_passing": 100,
+      "note": "Takeover audit found next_action and verification.tests/statistics.tests_passing stale since P1-W09 (next_action still pointed at P1-W09-T01 despite it being already accepted; test counters frozen at 74 instead of 85). Corrected here as a distinct, visible fix \u2014 not silently folded into this task's own numbers. Also fixed 2 pre-existing tamper-detection tests broken by adding schema_version (test fidelity fix: they were reconstructing tampered lines from a bare, version-unaware Event, dropping schema_version in a way no real edit would). Design note: schema_version is never an input to Event::computed_hash()/Anchor::computed_hash() \u2014 event.rs itself was not touched this task.",
+      "commit": "02fdb08284cf41bd704ae3adea5eef51a66ee180",
+      "accepted_at": "2026-08-27T01:15:00+00:00"
+    },
+    "P1-W11-T01": {
+      "status": "ACCEPTED",
+      "contract_version": 1,
+      "gate_id": "VG-P1-W11-T01",
+      "verification_report": ".ai-conductor-build/verification_reports/P1-W11-T01.md",
+      "artifact": "PROJECT/crates/conductor-kernel/src/console.rs, src/bin/console.rs",
+      "tests_passing": 106,
+      "note": "Scope decision: kernel has no persisted Mission/Step/Attempt object store yet (later-phase work), so the console shows real event/chain/outbox/sequence truth rather than fabricating Blueprint section 21's illustrative mission-mockup fields (workspace, files, reconciliation) that no kernel component produces yet. Capability boundary implemented via the console acting as TransitionActor::CancellationPath through the existing try_attempt_transition boundary (the only actor-authorization enforcement point that exists in the kernel today) - no new bypass actor granted. Both authorized and denied outcomes are written to the real event log. Verified with the compiled binary run end-to-end against a real store directory, not just unit tests.",
+      "commit": "d659f05573f1da1286cfea2c752950e21c544aa3",
+      "accepted_at": "2026-08-27T02:00:00+00:00"
+    },
+    "P2-W01-T01": {
+      "status": "ACCEPTED",
+      "contract_version": 1,
+      "gate_id": "VG-P2-W01-T01",
+      "verification_report": ".ai-conductor-build/verification_reports/P2-W01-T01.md",
+      "artifact": "PROJECT/crates/conductor-kernel/src/worktree.rs",
+      "tests_passing": 116,
+      "note": "WorktreeManager (create/remove/list_registered) over real `git worktree` invocations -- first module in the crate with an external-process dependency rather than pure filesystem I/O. Isolation proven both directions (live-repo changes don't leak into a pinned attempt workspace; attempt-workspace writes never appear in the live repo) against real Git repositories, nothing mocked. Required failure-injection proof (Phase Manifest SS6.4, 'unexpected process exit'): remove_recovers_from_a_worktree_directory_deleted_out_from_under_git simulates a crash by deleting the worktree directory out-of-band and confirms clean recovery via prune. Explicitly does not implement baseline capture, reconciliation, or merge -- those are P2-W02+.",
+      "commit": "d48adae1f45ff9d846ff9414ddd2fcbc542bfcbd",
+      "accepted_at": "2026-08-27T04:00:00+00:00"
+    },
+    "P2-W02-T01": {
+      "status": "ACCEPTED",
+      "contract_version": 1,
+      "gate_id": "VG-P2-W02-T01",
+      "verification_report": ".ai-conductor-build/verification_reports/P2-W02-T01.md",
+      "artifact": "PROJECT/crates/conductor-kernel/src/baseline.rs",
+      "tests_passing": 126,
+      "note": "Baseline::capture(workspace_root) walks a workspace and records a sha256 content hash per regular file keyed by relative path (Blueprint SS4.4's baseline shape), reusing event.rs's existing hex_encode rather than a second hashing convention. .git excluded regardless of file type -- caught a real gap during testing, not just a theoretical one: the main repo's .git is a directory but a `git worktree add` checkout's .git is a gitlink FILE, and the first implementation only excluded the directory form until the worktree-integration test (against a real P2-W01 AttemptWorkspace) caught .git leaking into the baseline. Fixed, plus a dedicated unit test added for the gitlink-file form specifically. Baseline::diff/diff_full report Added/Removed/Modified{before,after}/Unchanged per path -- the comparison primitive Invariant 13's live-workspace re-check and P2-W03's reconciliation will consume; this task does not implement either of those policies. Capture proven to be a pure read.",
+      "commit": "eb583e3eda84afe799e804453d6cf0e83aa23b8a",
+      "accepted_at": "2026-08-27T05:00:00+00:00"
+    },
+    "P2-W03-T01": {
+      "status": "ACCEPTED",
+      "contract_version": 1,
+      "gate_id": "VG-P2-W03-T01",
+      "verification_report": ".ai-conductor-build/verification_reports/P2-W03-T01.md",
+      "artifact": "PROJECT/crates/conductor-kernel/src/reconciliation.rs",
+      "tests_passing": 138,
+      "note": "ReconciliationOutcome reproduces Blueprint SS4.3's six-variant enum verbatim; reconcile(before, after, expected) -> ReconciliationOutcome is a pure deterministic function implementing algorithm steps 1-5 (NoChange/ExpectedChange/PartialChange/UnexpectedChange) over Baseline diffs (P2-W02). UserChangeDetected/Conflict are defined for spec-fidelity but never produced by reconcile() -- they require mutation attribution (P2-W05) and region-overlap detection (P2-W06) that do not exist yet; approximating them from file-level data alone would be false-confidence evidence. Restart-safety (Blueprint SS6) satisfied structurally: reconcile() has no internal state or I/O, so a crash mid-reconciliation just means calling it again against the same durable inputs -- proven by an explicit restart-safety test, not asserted. Return type has no path to AttemptStatus::Succeeded at all, upholding Invariant 14 by construction.",
+      "commit": "1603fa0f26e6e5b383fa90cfef537fede299b425",
+      "accepted_at": "2026-08-27T06:00:00+00:00"
+    },
+    "P2-W04-T01": {
+      "status": "ACCEPTED",
+      "contract_version": 1,
+      "gate_id": "VG-P2-W04-T01",
+      "verification_report": ".ai-conductor-build/verification_reports/P2-W04-T01.md",
+      "artifact": "PROJECT/crates/conductor-kernel/src/reconciliation.rs",
+      "tests_passing": 142,
+      "note": "recommended_attempt_status(outcome) -> Option<AttemptStatus> implements Blueprint SS4.3's outcome-to-next-action mapping: ExpectedChange -> None (defers to the not-yet-built Verification Engine; no AttemptStatus value in this crate means reconciliation-thinks-this-succeeded), every other outcome -> Some(Failed). State.rs's existing (P1) authorization gate restricting Running/Unknown->Succeeded to TransitionActor::VerificationEngine was NOT modified -- this task reinforces Invariant 14 by proving reconciliation cannot circumvent it. Required direct test (Phase Manifest SS6.3: reconciliation result != Succeeded transition) implemented exhaustively over all six outcome variants, plus a real integration test taking an actual reconcile() ExpectedChange result through try_attempt_transition across every TransitionActor, confirming only VerificationEngine is authorized.",
+      "commit": "d3bad25426c6c945d4afc05ef64c9ecf52a9504b",
+      "accepted_at": "2026-08-27T07:00:00+00:00"
+    },
+    "P2-W05-T01": {
+      "status": "ACCEPTED",
+      "contract_version": 1,
+      "gate_id": "VG-P2-W05-T01",
+      "verification_report": ".ai-conductor-build/verification_reports/P2-W05-T01.md",
+      "artifact": "PROJECT/crates/conductor-kernel/src/mutation_attribution.rs",
+      "tests_passing": 152,
+      "note": "attribute_mutations(path, baseline, ai_result, live_current, expected) classifies line-regions into Blueprint SS4.6's four categories (ExpectedConductorChange/UnexpectedAiChange/UserChange/ConflictRegion) using two real `git diff --no-index` invocations anchored to the same baseline line numbers, not a custom diff algorithm -- consistent with the crate's established real-Git discipline (P2-W01). Reuses P2-W03's ExpectedOperation for the expected/unexpected file-scope decision rather than inventing a second concept. Pure-insertion hunks are conservatively widened to a single-line overlap window (documented and directly tested), so under-flagging a real conflict never happens at the cost of occasionally over-flagging one -- the safe direction per Invariant 11. Does not implement the conflict-halt policy (P2-W06) or how a real caller obtains the three snapshots from a running attempt (P2-W07/Phase 5) -- both explicitly out of scope.",
+      "commit": "2299b42369dfcad98e5eac3cad63d2efb04c7937",
+      "accepted_at": "2026-08-29T20:00:00+00:00"
+    },
+    "P2-W06-T01": {
+      "status": "ACCEPTED",
+      "contract_version": 1,
+      "gate_id": "VG-P2-W06-T01",
+      "verification_report": ".ai-conductor-build/verification_reports/P2-W06-T01.md",
+      "artifact": "PROJECT/crates/conductor-kernel/src/conflict.rs",
+      "tests_passing": 161,
+      "note": "check_merge_safety(original_baseline, live_at_merge_time) implements Invariant 13's merge-time re-check via Baseline::diff, counting only Modified/Removed paths as drift -- Added paths excluded per Blueprint SS5.1's table row for newly-created untracked files, proven by a dedicated test. decide_merge(merge_check, attributions) combines that signal with P2-W05's ConflictRegion signal; Proceed is reachable in exactly one of the four combinations, proven by an exhaustive sweep, not inferred from testing each signal alone. Halt carries real evidence (changed paths / conflicting regions), not a bare flag. Deliberately does not drive any MissionStatus transition -- state.rs has no actor-authorization wrapper for mission-level transitions yet (confirmed by grep before writing code, unlike P2-W04 which had try_attempt_transition ready to compose against) -- nor the four-way person decision UI (P2-W07), nor the merge write itself, nor the mutation lock.",
+      "commit": "e4959e88094b932d66b7f4a79269f2a63eac81d4",
+      "accepted_at": "2026-08-30T09:00:00+00:00"
+    },
+    "P2-W07-T01": {
+      "status": "ACCEPTED",
+      "contract_version": 1,
+      "gate_id": "VG-P2-W07-T01",
+      "verification_report": ".ai-conductor-build/verification_reports/P2-W07-T01.md",
+      "artifact": "PROJECT/crates/conductor-kernel/src/person_decision.rs",
+      "tests_passing": 169,
+      "note": "PersonDecision reproduces Blueprint SS4.3's four-way choice verbatim (KeepUserVersion/KeepAiVersion/Merge/ReviewDiff) -- no fifth auto-resolve option, Invariant 11 upheld by construction. describe_conflict/render_decision_prompt surface real evidence (paths, region ranges), proven present in output, not generic text. record_person_decision mirrors console.rs's request_attempt_cancellation exactly (same StorePaths/EventLog/NewEvent path, caller-supplied now_ms, no direct clock read per AC-12) and writes the decision plus the evidence it responds to. Deliberately does not execute the chosen resolution (no merge write -- the mutation lock and merge-executor remain unbuilt, same P2-W06 scope boundary) and does not drive any MissionStatus transition (still no authorization wrapper for that in state.rs).",
+      "commit": "28f7cc6bfbaaafbe111b51ad003b32fac87af0ab",
+      "accepted_at": "2026-08-30T10:00:00+00:00"
+    },
+    "P3-W01-T01": {
+      "status": "ACCEPTED",
+      "contract_version": 1,
+      "gate_id": "VG-P3-W01-T01",
+      "verification_report": ".ai-conductor-build/verification_reports/P3-W01-T01.md",
+      "artifact": "PROJECT/crates/conductor-kernel/src/provider.rs",
+      "tests_passing": 178,
+      "note": "ProviderRequest/ProviderResult reproduce Blueprint SS10.1's thickened fields (capability_snapshot/raw_metadata/sanitized_metadata as serde_json::Value passthroughs -- SS10.3's full capability-registry shape is not this task's job to design). FakeBehavior reproduces SS10.2's ten variants verbatim. FakeProvider is script-driven (FIFO push_behavior/send), fails closed on an empty script (ScriptExhausted) rather than defaulting to Success, and DuplicateResponse replays the actual prior successful result rather than fabricating one (fails closed via NoDuplicateAvailable if none exists). SlowResponse's Duration is recorded as data (simulated_delay), never slept on -- no direct clock use (AC-12). Deliberate, flagged deviation from Blueprint SS10.1: send() is synchronous, not async -- no async runtime exists anywhere in this crate yet and introducing one is a bigger architectural decision than this task should make unilaterally; documented in the module and contract for whichever future task wires in a real network-bound adapter.",
+      "commit": "46b30bbf5124f55d05c4119850e1abe0e2d6f2c3",
+      "accepted_at": "2026-08-30T12:00:00+00:00"
+    },
+    "P3-W02-T01": {
+      "status": "ACCEPTED",
+      "contract_version": 1,
+      "gate_id": "VG-P3-W02-T01",
+      "verification_report": ".ai-conductor-build/verification_reports/P3-W02-T01.md",
+      "artifact": "PROJECT/crates/conductor-kernel/src/clock.rs",
+      "tests_passing": 188,
+      "note": "Clock trait (now_ms/source) plus RealClock (the crate's one sanctioned SystemTime::now() call, confirmed by crate-wide grep audit) and VirtualClock (AtomicU64-backed, starts at a caller-chosen value, advances exactly and instantly via advance(Duration) -- Blueprint SS28.5's 'clock advances 30s' made concrete). Both implement Clock and were proven usable interchangeably through a &dyn Clock trait object. Deliberately did not retrofit console.rs/person_decision.rs to take a Clock parameter -- both already correctly avoid direct clock reads via caller-supplied now_ms, and reopening two already-ACCEPTED modules wasn't required by the hard rule (which governs who may read the clock, not every function's parameter shape).",
+      "commit": "b297f91b3acd9291b835de0421e89db67a053b7a",
+      "accepted_at": "2026-08-30T13:00:00+00:00"
+    },
+    "P3-W03-T01": {
+      "status": "ACCEPTED",
+      "contract_version": 1,
+      "gate_id": "VG-P3-W03-T01",
+      "verification_report": ".ai-conductor-build/verification_reports/P3-W03-T01.md",
+      "artifact": "PROJECT/crates/conductor-kernel/src/chaos.rs",
+      "tests_passing": 197,
+      "note": "ChaosCategory reproduces Blueprint SS10.4's eight categories verbatim with exact default weights (10/10/5/15/5/5/5/5). ChaosConfig carries chaos_seed/scenario_id/virtual_time_seed per SS10.4's hard rule. ChaosEngine::roll evaluates each category as an independent trial via a self-contained splitmix64 PRNG (no new randomness dependency), proven deterministic across repeated seeded runs. Four provider-layer categories map to FakeBehavior (P3-W01); ProcessTermination/CheckpointInterruption/StatePersistenceInterruption deliberately have no mechanical mapping yet -- no attempt-execution orchestrator exists for them to interrupt. simulate_user_edit_mid_attempt (Phase Manifest's explicitly required category) is proven, end to end, to trigger P2-W06's Conflict detection -- composing P2-W02/P2-W06/P3-W03 into one real passing test, not just existing as an enum variant.",
+      "commit": "a20247b520dad5de8a214034c42b64dd9e01dcbc",
+      "accepted_at": "2026-08-30T14:00:00+00:00"
+    },
+    "P3-W04-T01": {
+      "status": "ACCEPTED",
+      "contract_version": 1,
+      "gate_id": "VG-P3-W04-T01",
+      "verification_report": ".ai-conductor-build/verification_reports/P3-W04-T01.md",
+      "artifact": "PROJECT/crates/conductor-kernel/src/scenario.rs",
+      "tests_passing": 216,
+      "note": "Scenario/ScenarioStep are the Rust shape of Blueprint SS28.4's YAML DSL (Scenario derives serde Serialize/Deserialize for future file loading; behavior is #[serde(skip)] since FakeBehavior isn't itself serde-derived yet -- documented, not silently assumed). run_scenario actually executes: real temp workspace, real setup files, real Baseline capture, steps run in order with a failing ProviderBehavior genuinely stopping remaining steps, real reconcile() AND real check_merge_safety(). Bug found and fixed during this session's own verification (not papered over): the first version only called reconcile(), which cannot see that an 'expected' file was changed by a user rather than the attempt -- changed_baseline_family failed cargo test for real, exposing that changed-baseline/merge-conflict/user-conflict are fundamentally about Invariant 13's merge-time re-check, not reconcile() alone. Fixed by having the engine run both real checks and scenarios assert on whichever is relevant. Blueprint's own worked example (timeout_after_partial_edit) reproduced and proven to produce PartialChange. All 17 of Phase Manifest SS7.4's required failure families covered by real, executed, asserted scenarios, with every non-obvious mapping (5xx->Crash, quota exhaustion, ambiguous outcome->Timeout, the three abort-marker categories) documented explicitly in code rather than left implicit.",
+      "commit": "a2ea79df2a1a1c3f89e01d111309134ce42b5e16",
+      "accepted_at": "2026-08-30T15:00:00+00:00"
+    },
+    "P4-W01-T01": {
+      "status": "ACCEPTED",
+      "contract_version": 1,
+      "gate_id": "VG-P4-W01-T01",
+      "verification_report": ".ai-conductor-build/verification_reports/P4-W01-T01.md",
+      "artifact": "PROJECT/crates/conductor-kernel/src/verification.rs",
+      "tests_passing": 232,
+      "note": "SECURITY-SCOPE WARNING (repeated in module/contract/report on purpose): VerificationStage implements Blueprint SS7's eight-stage pipeline with genuine short-circuiting (proven directly). RequirementVerificationClass implements SS7's three classes verbatim; ModelAssisted structurally cannot alone satisfy a blocking requirement. run_verification_command implements FOUR of SS7.1's sandbox protections for real against real process execution (command allowlist, working-directory confinement, a real timeout via poll-loop, environment-variable filtering via env_clear) plus mutation detection reusing P2-W02's Baseline -- but does NOT implement OS-level process-tree containment (job objects/namespaces/cgroups) or network isolation, both explicitly deferred to a dedicated future task with its own escape-attempt test suite. THIS MODULE IS NOT CLEARED FOR RUNNING UNTRUSTED ACCEPTANCE-CONTRACT COMMANDS. A real bug was found and fixed before any sandbox test ran against real processes: naive split_whitespace() argument parsing mangled quoted arguments; replaced with a small self-contained quote-aware tokenizer, directly unit-tested (5 tests) rather than only exercised indirectly.",
+      "commit": "3407400ff7287a2629d434607ff89df2272f79f9",
+      "accepted_at": "2026-08-31T01:00:00+00:00"
+    },
+    "P4-W02-T01": {
+      "status": "ACCEPTED",
+      "contract_version": 1,
+      "gate_id": "VG-P4-W02-T01",
+      "verification_report": ".ai-conductor-build/verification_reports/P4-W02-T01.md",
+      "artifact": "PROJECT/crates/conductor-kernel/src/evidence.rs",
+      "tests_passing": 243,
+      "note": "Evidence implements Blueprint SS4.5's structured provenance record. EvidenceProvenance (6 variants) and Reproducibility (Deterministic|Flaky|Unknown) reproduced verbatim; ObservationType and IntegrityLevel are explicitly flagged as this task's own minimal interpretation since Blueprint doesn't enumerate their variants anywhere read for this task. produced_at_ms stored instead of a literal freshness Duration (a fixed Duration captured once would go stale) -- freshness always computed on demand against a caller-supplied now_ms, zero direct clock reads (grep-audited). matches(provenance, max_freshness, execution_id, now_ms) proven to fail independently on wrong provenance, staleness, wrong execution_id, and a failed underlying result -- four separate tests, not one combined case. from_stage_outcome connects real P4-W01 StageOutcome results to real Evidence, including the SkippedDueToEarlierFailure edge case correctly mapping to result:false.",
+      "commit": "c99d0e094f1a239ef5b122246f7ac312769c387d",
+      "accepted_at": "2026-08-31T02:00:00+00:00"
+    },
+    "P4-W03-T01": {
+      "status": "ACCEPTED",
+      "contract_version": 1,
+      "gate_id": "VG-P4-W03-T01",
+      "verification_report": ".ai-conductor-build/verification_reports/P4-W03-T01.md",
+      "artifact": "PROJECT/crates/conductor-kernel/src/mission_acceptance.rs",
+      "tests_passing": 249,
+      "note": "VerificationType reproduces exactly Blueprint SS8's five named verification types; ExpectedResult::Other(String) flagged as this task's own fallback beyond the single shown exit_code_0 example. Criterion/MissionAcceptanceContract/RequiredEvidenceSpec match SS8's JSON shape field-for-field; RequiredEvidenceSpec reuses P4-W02's EvidenceProvenance directly. evaluate_contract reuses Evidence::matches (P4-W02) directly rather than re-implementing provenance/freshness comparison. Missing evidence for a criterion fails explicitly (NoEvidenceProvided), distinguishable from EvidenceDidNotMatch -- proven as separate outcomes, not assumed. all_blocking_satisfied() ignores non-blocking criteria, proven against a case built to look identical to a failing-blocking case if that distinction were dropped. Blueprint's own seven-criterion 'auth' worked example reproduced and evaluated end to end. Never references AttemptStatus anywhere in its logic (grep-audited) -- setting Succeeded remains explicitly P4-W04's job. Does not modify P4-W01's already-accepted pipeline to adopt this richer schema.",
+      "commit": "0729c1305c2ab72bdf68fe4866b133e43afb20e6",
+      "accepted_at": "2026-08-31T03:00:00+00:00"
+    },
+    "P4-W04-T01": {
+      "status": "ACCEPTED",
+      "contract_version": 1,
+      "gate_id": "VG-P4-W04-T01",
+      "verification_report": ".ai-conductor-build/verification_reports/P4-W04-T01.md",
+      "artifact": "PROJECT/crates/conductor-kernel/src/verification_engine.rs",
+      "tests_passing": 258,
+      "note": "decide() composes P4-W01's pipeline result, P4-W03's MAC evaluation, and two additional checks (wrong-verification-method via observation_type vs verification_type; false-model-success via requiring IntegrityLevel::IndependentlyVerified for blocking criteria, mirroring P4-W01's ModelAssisted rule) into one SuccessDecision. Neither P4-W02 nor P4-W03 was reopened -- both additions are this task's own layer on top, explicitly flagged as interpretation beyond Blueprint SS8's literal JSON schema. attempt_succeeded_transition calls the REAL state::try_attempt_transition(VerificationEngine, Running, Succeeded) exactly once, only in the Succeed branch. All 8 of Phase Manifest SS8.4's required scenarios (passing/failing acceptance criteria, stale evidence, insufficient evidence, wrong verification method, partial completion, false model success, favorable-reconciliation-without-verification) proven as individual named tests; the passing scenario proven against a REAL Ok(()) from the actual state.rs gate, not simulated. Crate-wide grep audit confirms verification_engine.rs is the only production call site anywhere in the crate that calls try_attempt_transition with a Succeeded target -- closes Invariant 14's proof chain end to end (P1's structural gate -> P2-W04's reconciliation-alone-can't-do-it confirmation -> this task's full-composed-engine confirmation).",
+      "commit": "31622a914838f9e317bea9fa781e92356ba83844",
+      "accepted_at": "2026-08-31T04:00:00+00:00"
+    },
+    "P5-W01-T01": {
+      "status": "ACCEPTED",
+      "contract_version": 1,
+      "gate_id": "VG-P5-W01-T01",
+      "verification_report": ".ai-conductor-build/verification_reports/P5-W01-T01.md",
+      "artifact": "PROJECT/crates/conductor-kernel/src/execution_adapter.rs",
+      "tests_passing": 265,
+      "note": "Environment constraint confirmed before writing any code: neither Aider nor Jcode installed in this sandbox, no provider API keys available. ExecutionAdapter trait + supporting types (ExecutorIdentity, CapabilitySnapshot with 13 capabilities as tri-state CapabilityValue, ExecutionRequest reusing CorrelationContext directly, ExecutionState with 9 variants including mandatory Unknown, FinalizationClaim as a genuinely distinct type from ExecutionState -- not aliased, FailureCategory with 10 variants, Observation, CancellationReport, EvidenceRefs) reproduce the Execution Adapter Contract v1.0 field-for-field. Hard Authority Rules upheld structurally: zero crate::state/crate::conflict references anywhere in the module (grep-audited), so the trait has no method capable of reaching AttemptStatus::Succeeded or MergeDecision at all. FakeExecutionAdapter (mirroring provider.rs's FakeProvider precedent) proven to implement the full trait through a trait object. No claim of real-executor validation made -- P5-W03 onward explicitly blocked by this environment's lack of Aider/Jcode/API keys.",
+      "commit": "8cf503adc502d74679c2d344946a6bea418db4b4",
+      "accepted_at": "2026-08-31T06:00:00+00:00"
+    },
+    "P5-W02-T01": {
+      "status": "ACCEPTED",
+      "contract_version": 1,
+      "gate_id": "VG-P5-W02-T01",
+      "verification_report": ".ai-conductor-build/verification_reports/P5-W02-T01.md",
+      "artifact": "PROJECT/crates/conductor-kernel/src/executor_capability_snapshot.rs",
+      "tests_passing": 268,
+      "note": "ExecutorCapabilitySnapshotRecord combines all six of Phase Manifest SS9.3 P5-W02's named dimensions: identity/version/commit and capabilities pulled directly from a real &dyn ExecutionAdapter (P5-W01); workspace behavior and lifecycle semantics as new CapabilityValue-tri-state structs (unobserved stays Unknown, never silently favorable); verification provenance reusing P4-W02's EvidenceProvenance/IntegrityLevel directly. record_executor_capability_snapshot writes a real event via the same EventLog/NewEvent path console.rs/person_decision.rs already established, proven by writing to a real temp store and reading the nested content back intact. Did not reopen execution_adapter.rs to add workspace/lifecycle probe methods -- those require real execution observation (P5-W03/W04), not a queryable adapter property. Same environment constraint as P5-W01 carried forward: content in this task's tests is clearly FakeExecutionAdapter's, never presented as Aider/Jcode data.",
+      "commit": "f9611595aaad5e52e08aa6999781e31aaa9c9ec0",
+      "accepted_at": "2026-08-31T07:00:00+00:00"
+    },
+    "P5-W03-T01": {
+      "status": "BLOCKED",
+      "contract_version": null,
+      "blocking_reason": "Reference Executor Isolation requires a real execution harness (Aider and/or Jcode) plus valid provider credentials. Neither is available/confirmed in any session to date; see P5-REAL-EXECUTOR-READINESS.md U-0004.",
+      "dependency": "real_executor_and_provider_credentials",
+      "not_failed": true,
+      "readiness_report": ".ai-conductor-build/verification_reports/P5-REAL-EXECUTOR-READINESS.md",
+      "recorded_at": "2026-09-10T00:00:00+00:00",
+      "conformance_foundation_status": "IMPLEMENTED (structural/synthetic only -- see P5-CONFORMANCE-FOUNDATION.md); does not resolve the BLOCKED status"
+    },
+    "P5-W04-T01": {
+      "status": "BLOCKED",
+      "contract_version": null,
+      "blocking_reason": "Real Execution Lifecycle observation requires a real executor already running under P5-W03; blocked transitively by the same dependency.",
+      "dependency": "real_executor_and_provider_credentials",
+      "not_failed": true,
+      "readiness_report": ".ai-conductor-build/verification_reports/P5-REAL-EXECUTOR-READINESS.md",
+      "recorded_at": "2026-09-10T00:00:00+00:00",
+      "conformance_foundation_status": "IMPLEMENTED (structural/synthetic only -- see P5-CONFORMANCE-FOUNDATION.md); does not resolve the BLOCKED status"
+    },
+    "P5-W05-T01": {
+      "status": "BLOCKED",
+      "contract_version": null,
+      "blocking_reason": "Restart and Reconciliation requires interrupting a real executor mid-execution (P5-W03/W04); blocked transitively by the same dependency.",
+      "dependency": "real_executor_and_provider_credentials",
+      "not_failed": true,
+      "readiness_report": ".ai-conductor-build/verification_reports/P5-REAL-EXECUTOR-READINESS.md",
+      "recorded_at": "2026-09-10T00:00:00+00:00",
+      "conformance_foundation_status": "IMPLEMENTED (structural/synthetic only -- see P5-CONFORMANCE-FOUNDATION.md); does not resolve the BLOCKED status"
+    },
+    "P5-W06-T01": {
+      "status": "NOT_APPLICABLE_YET",
+      "note": "Conditional per Phase Manifest SS9.3 ('if Aider is retained'). Not yet reached; not blocked in the same sense as W03-W05, since it may turn out to be skippable depending on which executor is eventually selected -- that selection has not been made and this audit does not make it.",
+      "recorded_at": "2026-09-10T00:00:00+00:00"
+    },
+    "P5-W07-T01": {
+      "status": "NOT_APPLICABLE_YET",
+      "note": "Conditional per Phase Manifest SS9.3 ('if the pinned/installed Jcode build is available'). Jcode has never been observed installed in this project. Same non-blocking-in-the-W03-sense status as W06.",
+      "recorded_at": "2026-09-10T00:00:00+00:00"
+    },
+    "P5-W08-T01": {
+      "status": "NOT_STARTED",
+      "note": "Explicit human instruction: do not start P5-W08 yet, even though the prior session's next_action flagged it as partially achievable via two FakeExecutionAdapter instances. Deferred by directive, not by capability or environment.",
+      "recorded_at": "2026-09-10T00:00:00+00:00"
+    },
+    "P5-CONFORMANCE-FOUNDATION": {
+      "status": "ACCEPTED",
+      "contract_version": 1,
+      "description": "Minimum reusable, executor-neutral conformance harness for the Execution Adapter Contract's 17-item EC-01..EC-17 suite. Structural infrastructure only -- does NOT satisfy P5-W03/W04/W05, which remain BLOCKED. See verification_reports/P5-CONFORMANCE-FOUNDATION.md.",
+      "files_added": [
+        "crates/conductor-kernel/src/conformance.rs"
+      ],
+      "files_modified": [
+        "crates/conductor-kernel/src/lib.rs"
+      ],
+      "architecture_change_record": ".ai-conductor-build/architecture_changes/AC-13-execution-conformance-enumeration-conflict.md",
+      "tests_added": 18,
+      "tests_total_after": 286,
+      "cargo_lock_changed": false,
+      "new_dependencies": [],
+      "verification_report": ".ai-conductor-build/verification_reports/P5-CONFORMANCE-FOUNDATION.md",
+      "recorded_at": "2026-09-10T00:00:00+00:00"
+    },
+    "P5-CONFORMANCE-FOUNDATION-CORRECTION": {
+      "status": "ACCEPTED",
+      "contract_version": 1,
+      "description": "Forensic-audit-driven correction pass on P5-CONFORMANCE-FOUNDATION. Does NOT implement P5-W03/W04/W05 and does NOT change their BLOCKED status. Four parts: (1) governance -- new standalone canonical GOVERNANCE/EC_ENUMERATION_MAPPING.md, explicitly marked PROVISIONAL, AC-13 amended with a non-destructive pointer to it; (2) type hardening -- ConformanceResult fields made private, construction restricted to five named constructors (observed/verified/blocked/unknown/not_applicable) each fixing its own valid status/passed combination, with adversarial regression tests; (3) EC-03 documentation precision -- doc comment and runtime detail strings now state the six exact limits found by the forensic audit (gitignored paths included, new symlinks invisible, transient writes invisible, root-scoped only, 'repository-tree snapshot integrity' vs 'machine-wide confinement' distinction made explicit), plus a new regression test; (4) EC-12/EC-13 small corrections -- EC-12 now additionally checks failure_classification is populated whenever final_executor_state is failure-shaped (uses the existing Adapter Contract SS13 taxonomy, no new architecture); EC-13 now also scans EvidenceRefs.process_ref and exit_result; stderr's upstream absence is documented, not invented around. EC-11's missing reconciliation::reconcile()/IdempotencyStore bridge is documented as a TODO(P5-W05) and deliberately NOT implemented, per this task's explicit boundary.",
+      "files_changed": [
+        "PROJECT/crates/conductor-kernel/src/conformance.rs",
+        ".ai-conductor-build/architecture_changes/AC-13-execution-conformance-enumeration-conflict.md"
+      ],
+      "files_added": [
+        "GOVERNANCE/EC_ENUMERATION_MAPPING.md",
+        ".ai-conductor-build/verification_reports/P5-CONFORMANCE-FORENSIC-AUDIT.md",
+        ".ai-conductor-build/verification_reports/P5-CONFORMANCE-FOUNDATION-CORRECTION.md"
+      ],
+      "tests_added": 9,
+      "tests_total_after": 295,
+      "cargo_lock_changed": false,
+      "new_dependencies": [],
+      "no_p1_p2_p4_production_behavior_changed": true,
+      "no_real_executor_evidence_fabricated": true,
+      "p5_w03_w04_w05_status_unchanged": "BLOCKED (this task's own boundary explicitly forbids changing it)",
+      "verification_report": ".ai-conductor-build/verification_reports/P5-CONFORMANCE-FOUNDATION-CORRECTION.md",
+      "recorded_at": "2026-09-12T00:00:00+00:00"
+    }
+  },
+  "phase_history": {},
+  "checkpoints": {
+    "last_verified": "CK-P5-002",
+    "history": [
+      {
+        "id": "CK-P0-000",
+        "task_id": "P0-W00-T01",
+        "kind": "PHASE_ENTRY",
+        "commit": "23d732db1cd7f0d3e2957c0473eccaf642f7e486",
+        "repository_fingerprint": "23d732db1cd7f0d3e2957c0473eccaf642f7e486",
+        "verification_report": ".ai-conductor-build/verification_reports/P0-W00-T01.md",
+        "created_at": "2026-08-26T05:27:15+05:00",
+        "note": "Baseline commit of governing documents + build-state scaffold."
+      },
+      {
+        "id": "CK-P1-004",
+        "task_id": "P1-W04-T01",
+        "kind": "TASK_ACCEPTED",
+        "commit": "db371066042e13ab9aafd5045c2e8ffcfa0a237b",
+        "repository_fingerprint": "db371066042e13ab9aafd5045c2e8ffcfa0a237b",
+        "verification_report": ".ai-conductor-build/verification_reports/P1-W04-T01.md",
+        "created_at": "2026-08-27T00:00:00+00:00",
+        "note": "Takeover-audit finding: checkpoints.history had not been kept current since CK-P0-000 despite P0-W01..W14 and P1-W01..W03 all being accepted with recorded commits in task_history \u2014 a real drift between this array and git history. Not backfilled in this session (scope: complete P1-W04-T01 and move on, per Build Protocol \u00a75 'do not repeatedly re-prove the same thing'); flagged here for a future task rather than silently corrected."
+      },
+      {
+        "id": "CK-P1-005",
+        "task_id": "P1-W05-T01",
+        "kind": "TASK_ACCEPTED",
+        "commit": "318bb8d8f2218e27bbf96c06b97c3574847d0d32",
+        "repository_fingerprint": "318bb8d8f2218e27bbf96c06b97c3574847d0d32",
+        "verification_report": ".ai-conductor-build/verification_reports/P1-W05-T01.md",
+        "created_at": "2026-08-27T00:30:00+00:00"
+      },
+      {
+        "id": "CK-P1-006",
+        "task_id": "P1-W06-T01",
+        "kind": "TASK_ACCEPTED",
+        "commit": "22fa8a844cc5becb1d887bf4865b0ea10b2f6af9",
+        "repository_fingerprint": "22fa8a844cc5becb1d887bf4865b0ea10b2f6af9",
+        "verification_report": ".ai-conductor-build/verification_reports/P1-W06-T01.md",
+        "created_at": "2026-08-27T00:00:00+00:00"
+      },
+      {
+        "id": "CK-P1-007",
+        "task_id": "P1-W07-T01",
+        "kind": "TASK_ACCEPTED",
+        "commit": "48054676fa24dc7e8717e3f438558ea91a493f8a",
+        "repository_fingerprint": "48054676fa24dc7e8717e3f438558ea91a493f8a",
+        "verification_report": ".ai-conductor-build/verification_reports/P1-W07-T01.md",
+        "created_at": "2026-08-27T01:00:00+00:00"
+      },
+      {
+        "id": "CK-P1-008",
+        "task_id": "P1-W08-T01",
+        "kind": "TASK_ACCEPTED",
+        "commit": "ebe4a1f291e0894a093e6b52d3cc9f99d49b3cd1",
+        "repository_fingerprint": "ebe4a1f291e0894a093e6b52d3cc9f99d49b3cd1",
+        "verification_report": ".ai-conductor-build/verification_reports/P1-W08-T01.md",
+        "created_at": "2026-08-27T02:00:00+00:00"
+      },
+      {
+        "id": "CK-P1-009",
+        "task_id": "P1-W09-T01",
+        "kind": "TASK_ACCEPTED",
+        "commit": "6328d8177149fb770008d302f67bdf0e2c538bee",
+        "repository_fingerprint": "6328d8177149fb770008d302f67bdf0e2c538bee",
+        "verification_report": ".ai-conductor-build/verification_reports/P1-W09-T01.md",
+        "created_at": "2026-08-27T03:00:00+00:00"
+      },
+      {
+        "id": "CK-P1-010",
+        "task_id": "P1-W10-T01",
+        "kind": "TASK_ACCEPTED",
+        "commit": "02fdb08284cf41bd704ae3adea5eef51a66ee180",
+        "repository_fingerprint": "02fdb08284cf41bd704ae3adea5eef51a66ee180",
+        "verification_report": ".ai-conductor-build/verification_reports/P1-W10-T01.md",
+        "created_at": "2026-08-27T01:15:00+00:00"
+      },
+      {
+        "id": "CK-P1-011",
+        "task_id": "P1-W11-T01",
+        "kind": "TASK_ACCEPTED",
+        "commit": "d659f05573f1da1286cfea2c752950e21c544aa3",
+        "repository_fingerprint": "d659f05573f1da1286cfea2c752950e21c544aa3",
+        "verification_report": ".ai-conductor-build/verification_reports/P1-W11-T01.md",
+        "created_at": "2026-08-27T02:00:00+00:00"
+      },
+      {
+        "id": "CK-P2-001",
+        "task_id": "P2-W01-T01",
+        "kind": "TASK_ACCEPTED",
+        "commit": "d48adae1f45ff9d846ff9414ddd2fcbc542bfcbd",
+        "repository_fingerprint": "d48adae1f45ff9d846ff9414ddd2fcbc542bfcbd",
+        "verification_report": ".ai-conductor-build/verification_reports/P2-W01-T01.md",
+        "created_at": "2026-08-27T04:00:00+00:00"
+      },
+      {
+        "id": "CK-P2-002",
+        "task_id": "P2-W02-T01",
+        "kind": "TASK_ACCEPTED",
+        "commit": "eb583e3eda84afe799e804453d6cf0e83aa23b8a",
+        "repository_fingerprint": "eb583e3eda84afe799e804453d6cf0e83aa23b8a",
+        "verification_report": ".ai-conductor-build/verification_reports/P2-W02-T01.md",
+        "created_at": "2026-08-27T05:00:00+00:00"
+      },
+      {
+        "id": "CK-P2-003",
+        "task_id": "P2-W03-T01",
+        "kind": "TASK_ACCEPTED",
+        "commit": "1603fa0f26e6e5b383fa90cfef537fede299b425",
+        "repository_fingerprint": "1603fa0f26e6e5b383fa90cfef537fede299b425",
+        "verification_report": ".ai-conductor-build/verification_reports/P2-W03-T01.md",
+        "created_at": "2026-08-27T06:00:00+00:00"
+      },
+      {
+        "id": "CK-P2-004",
+        "task_id": "P2-W04-T01",
+        "kind": "TASK_ACCEPTED",
+        "commit": "d3bad25426c6c945d4afc05ef64c9ecf52a9504b",
+        "repository_fingerprint": "d3bad25426c6c945d4afc05ef64c9ecf52a9504b",
+        "verification_report": ".ai-conductor-build/verification_reports/P2-W04-T01.md",
+        "created_at": "2026-08-27T07:00:00+00:00"
+      },
+      {
+        "id": "CK-P2-005",
+        "task_id": "P2-W05-T01",
+        "kind": "TASK_ACCEPTED",
+        "commit": "2299b42369dfcad98e5eac3cad63d2efb04c7937",
+        "repository_fingerprint": "2299b42369dfcad98e5eac3cad63d2efb04c7937",
+        "verification_report": ".ai-conductor-build/verification_reports/P2-W05-T01.md",
+        "created_at": "2026-08-29T20:00:00+00:00"
+      },
+      {
+        "id": "CK-P2-006",
+        "task_id": "P2-W06-T01",
+        "kind": "TASK_ACCEPTED",
+        "commit": "e4959e88094b932d66b7f4a79269f2a63eac81d4",
+        "repository_fingerprint": "e4959e88094b932d66b7f4a79269f2a63eac81d4",
+        "verification_report": ".ai-conductor-build/verification_reports/P2-W06-T01.md",
+        "created_at": "2026-08-30T09:00:00+00:00"
+      },
+      {
+        "id": "CK-P2-007",
+        "task_id": "P2-W07-T01",
+        "kind": "TASK_ACCEPTED",
+        "commit": "28f7cc6bfbaaafbe111b51ad003b32fac87af0ab",
+        "repository_fingerprint": "28f7cc6bfbaaafbe111b51ad003b32fac87af0ab",
+        "verification_report": ".ai-conductor-build/verification_reports/P2-W07-T01.md",
+        "created_at": "2026-08-30T10:00:00+00:00"
+      },
+      {
+        "id": "CK-P3-001",
+        "task_id": "P3-W01-T01",
+        "kind": "TASK_ACCEPTED",
+        "commit": "46b30bbf5124f55d05c4119850e1abe0e2d6f2c3",
+        "repository_fingerprint": "46b30bbf5124f55d05c4119850e1abe0e2d6f2c3",
+        "verification_report": ".ai-conductor-build/verification_reports/P3-W01-T01.md",
+        "created_at": "2026-08-30T12:00:00+00:00"
+      },
+      {
+        "id": "CK-P3-002",
+        "task_id": "P3-W02-T01",
+        "kind": "TASK_ACCEPTED",
+        "commit": "b297f91b3acd9291b835de0421e89db67a053b7a",
+        "repository_fingerprint": "b297f91b3acd9291b835de0421e89db67a053b7a",
+        "verification_report": ".ai-conductor-build/verification_reports/P3-W02-T01.md",
+        "created_at": "2026-08-30T13:00:00+00:00"
+      },
+      {
+        "id": "CK-P3-003",
+        "task_id": "P3-W03-T01",
+        "kind": "TASK_ACCEPTED",
+        "commit": "a20247b520dad5de8a214034c42b64dd9e01dcbc",
+        "repository_fingerprint": "a20247b520dad5de8a214034c42b64dd9e01dcbc",
+        "verification_report": ".ai-conductor-build/verification_reports/P3-W03-T01.md",
+        "created_at": "2026-08-30T14:00:00+00:00"
+      },
+      {
+        "id": "CK-P3-004",
+        "task_id": "P3-W04-T01",
+        "kind": "TASK_ACCEPTED",
+        "commit": "a2ea79df2a1a1c3f89e01d111309134ce42b5e16",
+        "repository_fingerprint": "a2ea79df2a1a1c3f89e01d111309134ce42b5e16",
+        "verification_report": ".ai-conductor-build/verification_reports/P3-W04-T01.md",
+        "created_at": "2026-08-30T15:00:00+00:00"
+      },
+      {
+        "id": "CK-P4-001",
+        "task_id": "P4-W01-T01",
+        "kind": "TASK_ACCEPTED",
+        "commit": "3407400ff7287a2629d434607ff89df2272f79f9",
+        "repository_fingerprint": "3407400ff7287a2629d434607ff89df2272f79f9",
+        "verification_report": ".ai-conductor-build/verification_reports/P4-W01-T01.md",
+        "created_at": "2026-08-31T01:00:00+00:00"
+      },
+      {
+        "id": "CK-P4-002",
+        "task_id": "P4-W02-T01",
+        "kind": "TASK_ACCEPTED",
+        "commit": "c99d0e094f1a239ef5b122246f7ac312769c387d",
+        "repository_fingerprint": "c99d0e094f1a239ef5b122246f7ac312769c387d",
+        "verification_report": ".ai-conductor-build/verification_reports/P4-W02-T01.md",
+        "created_at": "2026-08-31T02:00:00+00:00"
+      },
+      {
+        "id": "CK-P4-003",
+        "task_id": "P4-W03-T01",
+        "kind": "TASK_ACCEPTED",
+        "commit": "0729c1305c2ab72bdf68fe4866b133e43afb20e6",
+        "repository_fingerprint": "0729c1305c2ab72bdf68fe4866b133e43afb20e6",
+        "verification_report": ".ai-conductor-build/verification_reports/P4-W03-T01.md",
+        "created_at": "2026-08-31T03:00:00+00:00"
+      },
+      {
+        "id": "CK-P4-004",
+        "task_id": "P4-W04-T01",
+        "kind": "TASK_ACCEPTED",
+        "commit": "31622a914838f9e317bea9fa781e92356ba83844",
+        "repository_fingerprint": "31622a914838f9e317bea9fa781e92356ba83844",
+        "verification_report": ".ai-conductor-build/verification_reports/P4-W04-T01.md",
+        "created_at": "2026-08-31T04:00:00+00:00"
+      },
+      {
+        "id": "CK-P5-001",
+        "task_id": "P5-W01-T01",
+        "kind": "TASK_ACCEPTED",
+        "commit": "8cf503adc502d74679c2d344946a6bea418db4b4",
+        "repository_fingerprint": "8cf503adc502d74679c2d344946a6bea418db4b4",
+        "verification_report": ".ai-conductor-build/verification_reports/P5-W01-T01.md",
+        "created_at": "2026-08-31T06:00:00+00:00"
+      },
+      {
+        "id": "CK-P5-002",
+        "task_id": "P5-W02-T01",
+        "kind": "TASK_ACCEPTED",
+        "commit": "f9611595aaad5e52e08aa6999781e31aaa9c9ec0",
+        "repository_fingerprint": "f9611595aaad5e52e08aa6999781e31aaa9c9ec0",
+        "verification_report": ".ai-conductor-build/verification_reports/P5-W02-T01.md",
+        "created_at": "2026-08-31T07:00:00+00:00"
+      }
+    ]
+  },
+  "verification": {
+    "last_gate": {
+      "id": "VG-P4-PHASE-GATE",
+      "status": "PASSED",
+      "report": ".ai-conductor-build/verification_reports/VG-P4-PHASE-GATE.md",
+      "commit": "2d055e3",
+      "executed_at": "2026-08-31T05:00:00+00:00"
+    },
+    "tests": {
+      "passed": 258,
+      "failed": 0,
+      "blocked": 0,
+      "unknown": 0
+    }
+  },
+  "failures": {
+    "open": [],
+    "recent": [
+      {
+        "id": "F-0001",
+        "severity": "medium",
+        "classification": "process_tooling_lost_update",
+        "summary": "Two parallel same-file edits to BUILD_STATE.json raced; one edit was silently lost. Detected by post-edit parse verification; fixed by sequential re-application. Rule recorded: same-file mutations are strictly sequential; kernel persistence must serialize writes (input to P1-W05).",
+        "evidence": ".ai-conductor-build/failure_cases/F-0001-lost-update-build-state.md",
+        "status": "ROOT_CAUSE_IDENTIFIED_REGRESSION_PLANNED",
+        "recorded_at": "2026-08-26T05:45:00+05:00"
+      },
+      {
+        "id": "F-ENV-0001",
+        "severity": "low",
+        "classification": "environment_tooling",
+        "summary": "Trae terminal intermittently returns empty output or IDE command timeouts for PowerShell probes (Get-Date -Format o, Test-Path bare form, rustc --version direct).",
+        "workaround": "Wrap output in Write-Output assignments; use where.exe / Get-Command / full-path invocation instead of bare commands; retry on alternate terminal.",
+        "status": "MITIGATED_WORKAROUND_KNOWN",
+        "recorded_at": "2026-08-26T05:27:15+05:00"
+      }
+    ]
+  },
+  "unknowns": [
+    {
+      "id": "U-0001",
+      "topic": "OmniRoute presence and version",
+      "detail": "A zero-byte file 'C:\\Windows\\system32\\omniroute' exists but is not an executable binary. No omniroute process/port found listening. Actual OmniRoute installation location/version UNKNOWN.",
+      "impact": "Blocks Phase 6 (OmniRoute + Gemini) only. Does not block P0-P3 or Aider integration.",
+      "resolution_path": "Ask human for install location OR discover via running service when Phase 6 preflight begins.",
+      "recorded_at": "2026-08-26T05:27:15+05:00"
+    },
+    {
+      "id": "U-0002",
+      "topic": "gstack availability",
+      "detail": "No gstack command found on PATH.",
+      "impact": "Blocks thin Skill Runtime slice only (campaign item 11).",
+      "resolution_path": "Ask human whether gstack is installed locally or must be treated as a later integration target.",
+      "recorded_at": "2026-08-26T05:27:15+05:00"
+    },
+    {
+      "id": "U-0003",
+      "topic": "Canonical repository layout choice",
+      "detail": "Blueprint proposes src-tauri/src/ (Tauri desktop app) plus conductor-sim CLI crate. Whether the human wants the full Tauri shell now or a kernel-first pure-Rust workspace with UI deferred is not stated explicitly in documents.",
+      "impact": "Affects initial Cargo workspace scaffolding shape only; does not affect contracts/invariants.",
+      "resolution_path": "Default decision inside engineering discretion: kernel-first cargo workspace under PROJECT/ per Blueprint module map, Tauri shell deferred. Recorded as a pending decision for confirmation.",
+      "recorded_at": "2026-08-26T05:27:15+05:00"
+    },
+    {
+      "id": "U-0004",
+      "topic": "Real-executor availability for Phase 5, precisely stated",
+      "detail": "Aider 0.86.2 was OBSERVED on the human's machine at 2026-08-26T05:27:15+05:00 (environment_baseline.md), but not reconfirmed since. No provider API keys have been observed available in any session. Jcode has never been observed installed. This takeover session's own sandbox has neither binary and a restricted network egress allowlist that would prevent installing either from here.",
+      "impact": "Blocks P5-W03 through P5-W05 (and, if unresolved, all of Phase 5 beyond W01/W02/possibly-partial-W08).",
+      "resolution_path": "Human reconfirms Aider is still present and supplies provider credentials via a secure mechanism (never in source/chat/BUILD_STATE), OR points the implementing session at Jcode instead. See P5-REAL-EXECUTOR-READINESS.md SS8 for the exact three-item requirement list.",
+      "recorded_at": "2026-09-10T00:00:00+00:00"
+    }
+  ],
+  "decisions": {
+    "pending": [
+      {
+        "id": "D-0001",
+        "topic": "Implementation root location",
+        "proposal": "Create the Rust workspace under E:\\AI-CONDUCTOR\\PROJECT\\ (the existing empty directory), keeping governance docs untouched at repo root.",
+        "authority_needed": "human_confirmation_optional",
+        "default_if_no_answer": "proceed_with_proposal"
+      },
+      {
+        "id": "D-0002",
+        "topic": "Git initialization",
+        "proposal": "Initialize git in E:\\AI-CONDUCTOR with main branch; commit governance docs + .ai-conductor-build as the baseline commit.",
+        "authority_needed": "none_build_protocol_implies_version_control",
+        "default_if_no_answer": "proceed_with_proposal"
+      }
+    ],
+    "accepted": [
+      {
+        "id": "D-0002",
+        "topic": "Git initialization on main",
+        "status": "EXECUTED",
+        "executed_at": "2026-08-26T05:45:00+05:00",
+        "evidence": "repository initialized; baseline commit 23d732db1cd7f0d3e2957c0473eccaf642f7e486"
+      },
+      {
+        "id": "P0-ACCEPT",
+        "topic": "Human acceptance of Phase 0 completion",
+        "status": "ACCEPTED_BY_HUMAN_MESSAGE",
+        "accepted_at": "2026-08-26T12:10:00+05:00",
+        "evidence": "user instruction CONTINUE following VG-P0-PHASE-GATE report PASSED_AWAITING_HUMAN_ACCEPTANCE"
+      },
+      {
+        "id": "P1-ACCEPT",
+        "topic": "Human acceptance of Phase 1 completion",
+        "status": "ACCEPTED_BY_HUMAN_MESSAGE",
+        "accepted_at": "2026-08-27T03:00:00+00:00",
+        "evidence": "user explicit message: \"I explicitly accept the Phase 1 gate as complete.\" following VG-P1-PHASE-GATE report PASSED and independent takeover-audit re-verification (106/106 tests re-run by the takeover agent, F-0001 re-run 10x, schema fail-closed hands-on probe, live console binary run, one defect found and fixed)."
+      },
+      {
+        "id": "P2-ACCEPT",
+        "topic": "Human acceptance of Phase 2 completion",
+        "status": "ACCEPTED_BY_HUMAN_MESSAGE",
+        "accepted_at": "2026-08-30T11:30:00+00:00",
+        "evidence": "user instruction \"Continue\" following VG-P2-PHASE-GATE report PASSED_AWAITING_HUMAN_ACCEPTANCE and the agent's explicit statement that entering Phase 3 required the same kind of explicit acceptance given at the P1 gate. Recorded under the same convention used at P0-ACCEPT, where 'Continue' following a PASSED_AWAITING_HUMAN_ACCEPTANCE gate was likewise treated as acceptance -- noted for consistency since P1-ACCEPT used a more explicit phrase; this evidence field states plainly what was actually said rather than characterizing it as more explicit than it was."
+      },
+      {
+        "id": "P3-ACCEPT",
+        "topic": "Human acceptance of Phase 3 completion",
+        "status": "ACCEPTED_BY_HUMAN_MESSAGE",
+        "accepted_at": "2026-08-31T00:00:00+00:00",
+        "evidence": "user message: \"Do all and everything following the files of blueprint and other files. Be careful.\" sent in direct response to the agent presenting four explicit options after VG-P3-PHASE-GATE report PASSED_AWAITING_HUMAN_ACCEPTANCE, one of which was 'Accept the Phase 3 gate and move into Phase 4.' The message did not use the word 'accept' or name Phase 3/4 specifically -- recorded honestly as a general directive to proceed through the governing documents, interpreted as authorizing the gate acceptance + phase transition option that was explicitly on offer, consistent with the weaker-than-P1-ACCEPT precedent already set at P0-ACCEPT and P2-ACCEPT. The instruction to 'be careful' is treated as governing HOW subsequent phases proceed (one task at a time, full contract/implementation/test/verification cycle, no shortcuts), not as changing what counts as acceptance here."
+      },
+      {
+        "id": "P4-ACCEPT",
+        "topic": "Human acceptance of Phase 4 completion",
+        "status": "ACCEPTED_BY_HUMAN_MESSAGE",
+        "accepted_at": "2026-08-31T05:30:00+00:00",
+        "evidence": "user message: \"Go\" sent in direct response to the agent's offer to enter Phase 5 following VG-P4-PHASE-GATE report PASSED_AWAITING_HUMAN_ACCEPTANCE. Recorded under the same convention as P0-ACCEPT/P2-ACCEPT/P3-ACCEPT: a short affirmative word following an explicit gate-acceptance offer, treated as acceptance of that specific offer rather than characterized as more explicit than it was."
+      },
+      {
+        "id": "P5-BLOCK-DIRECTIVE-001",
+        "topic": "Human directive: record P5-W03/W04/W05 as BLOCKED/DEFERRED, do not start P5-W08, do not fabricate partial evidence, do not prematurely select an executor, prepare for the real-executor stage, then stop",
+        "status": "EXECUTED",
+        "executed_at": "2026-09-10T00:00:00+00:00",
+        "evidence": "This BUILD_STATE update plus .ai-conductor-build/verification_reports/P5-REAL-EXECUTOR-READINESS.md. No production code (crates/conductor-kernel/src/**) was modified. 268/268 tests independently re-verified in a freshly provisioned sandbox as part of this session's own due diligence, not as new project work."
+      },
+      {
+        "id": "AC-13",
+        "topic": "Which of three conflicting EC-xx conformance enumerations (Blueprint SS10.7.6 16-item / Execution Adapter Contract SS14 17-item / Verification Gates SS66 12-gate) governs P5 conformance implementation",
+        "status": "PROVISIONAL_17_ITEM_EXECUTION_ADAPTER_ENUMERATION",
+        "decided_at": "2026-09-12T00:00:00+00:00",
+        "record": ".ai-conductor-build/architecture_changes/AC-13-execution-conformance-enumeration-conflict.md",
+        "mapping_authority": "GOVERNANCE/EC_ENUMERATION_MAPPING.md",
+        "evidence": "user instruction: \"Adopt the following human architectural ruling: AC-13 = PROVISIONAL 17-ITEM EXECUTION ADAPTER ENUMERATION. The 17-item enumeration in the Execution Adapter Contract remains the active provisional enumeration for P5 conformance work. The standalone: GOVERNANCE/EC_ENUMERATION_MAPPING.md is the canonical mapping artifact for the provisional state.\" -- quoted directly per this project's established convention of recording exactly what was said rather than characterizing it as more or less explicit than it was.",
+        "what_this_decision_is_NOT": "This is not a ruling that the Blueprint SS10.7.6 / Verification Gates SS66-67 / Phase Manifest numbering disagreement has been permanently resolved. None of those governing documents were renumbered, edited, or rewritten to agree with the Adapter Contract's 17-item list, and none should be assumed to agree with it merely because this decision exists. The decision is narrowly scoped to 'which enumeration governs P5 conformance implementation right now' -- the broader numbering disagreement across the governing documents remains genuinely open.",
+        "previous_pending_entry": {
+          "id": "AC-13",
+          "topic": "Which of three conflicting EC-xx conformance enumerations (Blueprint SS10.7.6 16-item / Execution Adapter Contract SS14 17-item / Verification Gates SS66 12-gate) is canonical",
+          "record": ".ai-conductor-build/architecture_changes/AC-13-execution-conformance-enumeration-conflict.md",
+          "provisional_resolution_in_use": "Execution Adapter Contract v1.0 SS14 (17-item EC-01..EC-17), implemented in crates/conductor-kernel/src/conformance.rs",
+          "blocking": false,
+          "recorded_at": "2026-09-10T00:00:00+00:00",
+          "canonical_mapping_document": "GOVERNANCE/EC_ENUMERATION_MAPPING.md",
+          "mapping_document_status": "PROVISIONAL, explicitly marked as such in the document itself",
+          "note": "Per the forensic audit's recommended resolution (a C+B hybrid): the provisional 17-item choice remains in active use for structural work, now with a standalone canonical mapping artifact; final ruling still pending human decision; real-executor certification must not cite either artifact as proof the numbering conflict is resolved."
+        }
+      }
+    ]
+  },
+  "dependencies": {
+    "environment": {
+      "os": "Windows (64-bit)",
+      "timezone": "Asia/Karachi",
+      "git": "2.55.0.windows.3",
+      "node": "24.19.0",
+      "npm": "11.17.0",
+      "rustc": "1.97.1 (8bab26f4f 2026-07-14)",
+      "cargo": "1.97.1 (c980f4866 2026-06-30)",
+      "python": "3.12 (C:\\Users\\Muhammad Hamad Latif\\AppData\\Local\\Programs\\Python\\Python312\\python.exe)",
+      "aider": "0.86.2",
+      "bun": "NOT_FOUND",
+      "pnpm": "NOT_FOUND",
+      "gstack": "NOT_FOUND",
+      "omniroute": "AMBIGUOUS_ZERO_BYTE_SYSTEM32_ENTRY_SEE_U-0001"
+    },
+    "requested": [],
+    "blocked_on_human": []
+  },
+  "repository": {
+    "branch": "TO_BE_CREATED_ON_INIT",
+    "head": null,
+    "dirty": true,
+    "baseline_recorded_at": "2026-08-26T05:27:15+05:00"
+  },
+  "runtime": {
+    "safe_mode": false,
+    "dry_run_default": true,
+    "agent": "OX Alpha (Trae)"
+  },
+  "next_action": {
+    "exact_action": "STOP, per directive. GOVERNANCE-ONLY checkpoint complete: AC-13 formally decided as PROVISIONAL_17_ITEM_EXECUTION_ADAPTER_ENUMERATION (see decisions.accepted), GOVERNANCE/EC_ENUMERATION_MAPPING.md and the AC-13 record updated to reflect the ruling without renumbering any governing document. P5 certification boundary now stated explicitly in current_phase.p5_certification_boundary. P5-W03-T01/P5-W04-T01/P5-W05-T01 remain BLOCKED, not accepted, unchanged by this checkpoint. Do not proceed automatically to P5-W03. Do not request credentials. Do not install Aider/Jcode. Do not start real execution. Await explicit further instruction.",
+    "authorized_by": "Human directive (this session's governance-only checkpoint request)",
+    "recorded_at": "2026-09-12T01:00:00+00:00"
+  },
+  "session": {
+    "session_id": "S-20260912-P5-CONFORMANCE-FOUNDATION-CORRECTION",
+    "boot_completed": true,
+    "readiness_report_issued": false,
+    "stop_report_present": false,
+    "note": "Correction pass following the forensic audit. Re-read all governing documents plus the audit before changing code, per instruction. Did not implement P5-W03/W04/W05, did not add an Aider/Jcode adapter, did not weaken any gate. 295/295 tests passing (268 baseline + 27 conformance, was 18 before this pass), 0 warnings, Cargo.lock byte-identical throughout."
+  },
+  "integrity": {
+    "state_reconstructed_from": "fresh inspection 2026-08-26T05:27:15+05:00 (no prior BUILD_STATE found)",
+    "consistency": "CONSISTENT_WITH_REPOSITORY"
+  },
+  "statistics": {
+    "governing_documents_read_or_scanned": 10,
+    "contracts_defined": 35,
+    "production_code_files": 31,
+    "tests_passing": 268,
+    "tests_passed": 295,
+    "tests_failed": 0
+  },
+  "updated_at": "2026-09-12T01:00:00+00:00",
+  "previous_phase_P1_summary": {
+    "final_status": "COMPLETED_AND_ACCEPTED",
+    "tasks_accepted": "11/11",
+    "phase_gate": "VG-P1-PHASE-GATE PASSED",
+    "gate_report": ".ai-conductor-build/verification_reports/VG-P1-PHASE-GATE.md",
+    "takeover_audit_addendum": "P1-W11-T01.md addendum (console store-dir auto-create defect found and fixed during takeover audit, commit b7a89cf); does not reopen the PASSED verdict."
+  },
+  "previous_phase_P2_summary": {
+    "final_status": "COMPLETED_AND_ACCEPTED",
+    "tasks_accepted": "7/7",
+    "phase_gate": "VG-P2-PHASE-GATE PASSED",
+    "gate_report": ".ai-conductor-build/verification_reports/VG-P2-PHASE-GATE.md",
+    "known_items_carried_forward": "pre-existing P0-W10-T01 BUILD_STATE.json ledger gap (unrelated to P2); no merge-executor or mission-transition authorization gate exists yet -- both deliberately out of scope for every P2-W04..W07 task; see VG-P2-PHASE-GATE.md for full detail. Neither reopens the PASSED verdict."
+  },
+  "previous_phase_P3_summary": {
+    "final_status": "COMPLETED_AND_ACCEPTED",
+    "tasks_accepted": "4/4",
+    "phase_gate": "VG-P3-PHASE-GATE PASSED",
+    "gate_report": ".ai-conductor-build/verification_reports/VG-P3-PHASE-GATE.md",
+    "known_items_carried_forward": "carries forward the P0-W10-T01 ledger gap and no-merge-executor-yet finding from P2; three of the 17 required failure families (process termination, checkpoint/persistence interruption) have no direct mechanical simulation since no attempt-execution orchestrator exists; Scenario::behavior cannot round-trip through serde yet since FakeBehavior isn't itself serde-derived. One meaningful bug found and fixed during this phase (scenario engine originally missing Invariant 13's merge-time check) was entered into the permanent regression corpus as F-0002, per the phase gate's own requirement. None of this reopens the PASSED verdict."
+  },
+  "previous_phase_P4_summary": {
+    "final_status": "COMPLETED_AND_ACCEPTED",
+    "tasks_accepted": "4/4",
+    "phase_gate": "VG-P4-PHASE-GATE PASSED",
+    "gate_report": ".ai-conductor-build/verification_reports/VG-P4-PHASE-GATE.md",
+    "known_items_carried_forward": "carries forward the P0-W10-T01 ledger gap and no-merge-executor-yet finding from P2; the Verification Engine has never been exercised against a real attempt lifecycle (every P4 test constructs its inputs directly, same orchestrator gap noted since P2-W06); the command sandbox (P4-W01) remains explicitly partial (no OS-level process-tree containment, no network isolation). One genuine finding (verification.rs's sandbox timeout reading Instant::now() directly rather than through the injectable Clock) was surfaced during the phase gate audit itself, investigated, and resolved with a documented reasoned exception rather than either ignored or reflexively patched. None of this reopens the PASSED verdict."
+  }
+}

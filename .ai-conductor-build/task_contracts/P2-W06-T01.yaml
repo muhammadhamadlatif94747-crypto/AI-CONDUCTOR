@@ -1,0 +1,157 @@
+# Task Contract — P2-W06-T01
+
+```yaml
+contract_version: 1
+id: P2-W06-T01
+phase: P2
+status: IMPLEMENTED
+
+authority:
+  blueprint: "2.5.1"
+  protocol: "1.1"
+  phase_manifest: "1.1"
+
+section_refs:
+  - "Blueprint §5 / §26.2 (Invariant 13 — two-phase merge re-check)"
+  - "Blueprint §5.1 (Git edge cases the merge contract must define)"
+  - "Blueprint §3, Invariant 11 (\"Conflict never auto-resolves\")"
+  - "Blueprint §4.3 (Conflict outcome)"
+  - "Phase Manifest §6.3 P2-W06 (\"Conflict must halt rather than silently
+     resolve\")"
+
+objective: >
+  Implement conflict detection per Invariant 13's merge-time re-check
+  (Blueprint §5/§26.2: before merging an isolated attempt's result back
+  into the live workspace, re-check the live workspace against the
+  original baseline; any drift is Conflict, never merged blind) combined
+  with P2-W05's region-level attribution signal, into a single merge
+  decision that is structurally incapable of proceeding when either
+  signal fires. This is the missing piece both P2-W04's and P2-W05's
+  contracts pointed at without building: P2-W04 proved reconciliation
+  can't manufacture Succeeded; P2-W05 produced ConflictRegion as data;
+  this task is what actually makes "Conflict must halt" a real, provable
+  property of a real decision function, rather than a described intent.
+
+allowed_files:
+  - "PROJECT/crates/conductor-kernel/**"
+  - ".ai-conductor-build/task_contracts/P2-W06-T01.yaml"
+  - ".ai-conductor-build/verification_reports/P2-W06-T01.md"
+  - ".ai-conductor-build/BUILD_STATE.json"
+
+forbidden_files:
+  - "BLUEPRINT/**"
+  - "GOVERNANCE/**"
+  - "FAILURE_MEMORY/**"
+  - "KNOWLEDGE/**"
+  - "48 HOURS/**"
+
+forbidden_actions:
+  - "editing governing documents"
+  - "driving any MissionStatus transition (e.g. to Blocked) -- state.rs
+     currently exposes no try_mission_transition / actor-authorization
+     wrapper for MissionStatus at all (confirmed by grep before writing
+     any code: only try_attempt_transition exists), so there is no
+     existing gate this task could correctly compose against the way
+     P2-W04 composed against try_attempt_transition. Blueprint's own
+     prose pairs 'mission PAUSED' with 'person must choose' in the same
+     sentence -- that pairing is P2-W07's job (the four-way person
+     decision UI), not this task's; wiring a mission-level transition
+     ahead of the UI that's supposed to drive it risks a halt with
+     nothing downstream able to resolve it"
+  - "implementing the four-way person decision UI (P2-W07)"
+  - "performing the actual merge/write operation itself (copying the
+     attempt workspace's content into the live workspace) -- this task
+     decides Proceed vs Halt; it does not write anything"
+  - "implementing the workspace mutation lock (Blueprint §26.2's
+     'single authoritative executor' / Section 17 boundary) -- that is
+     existing infrastructure this task's caller is expected to already
+     be holding when it calls decide_merge, per the Blueprint's own
+     sequencing (acquire lock → re-check → decide); building or
+     re-deriving that lock is out of scope here"
+
+dependencies:
+  - "P2-W02-T01 (baseline capture) -- the merge-time re-check reuses
+     Baseline::diff."
+  - "P2-W05-T01 (mutation attribution) -- reuses MutationAttribution /
+     RegionClassification::ConflictRegion as the region-level signal."
+
+preconditions:
+  - "Phase 2 active."
+  - "Baseline and MutationAttribution types exist (P2-W02, P2-W05)."
+
+inputs:
+  - "Blueprint §5/§26.2's two-phase merge re-check sequence."
+  - "Blueprint §5.1's edge-case table -- specifically the row stating a
+     newly-created untracked file since baseline is 'not part of the
+     baseline comparison; left alone; merge proceeds on the files it
+     actually owns', which this task's merge-time check must honor by
+     NOT treating Baseline::diff's `Added` entries as conflict signals
+     (only `Modified` and `Removed`, matching the table's other two
+     rows exactly)."
+
+outputs:
+  - "conductor-kernel::conflict -- MergeCheckResult, ConflictReason,
+     MergeDecision, check_merge_safety(original_baseline,
+     live_at_merge_time) -> MergeCheckResult, and decide_merge(...) ->
+     MergeDecision combining both signals."
+
+implementation_requirements:
+  - "check_merge_safety compares original_baseline against
+     live_at_merge_time via Baseline::diff. Only Modified and Removed
+     paths count as drift (Conflict-triggering); Added paths are
+     excluded, per Blueprint §5.1's explicit table row for
+     newly-created untracked files -- documented in code as a direct
+     citation of that row, not left implicit."
+  - "decide_merge takes the merge-time check result AND the region-level
+     attribution slice (P2-W05) and returns Halt if EITHER signal fired
+     -- fail-closed composition, not an either/or choice between the two
+     detection mechanisms."
+  - "MergeDecision::Halt carries enough detail (which paths drifted,
+     which regions conflicted) for a future caller (P2-W07's four-way UI)
+     to actually show the person something real -- not a bare boolean."
+  - "An exhaustive test must cover all four combinations of {merge-time
+     safe, merge-time conflict} x {no region conflict, region conflict
+     present} and confirm Proceed is reachable ONLY in the
+     safe-and-no-region-conflict cell -- the concrete proof that
+     'Conflict must halt rather than silently resolve' actually holds
+     for this function, not just for each signal considered alone."
+
+invariants_preserved: ["1", "2", "6", "8", "11", "13"]
+invariants_proven: ["11", "13"]
+
+required_tests:
+  - "cargo test: merge-time Modified path -> Conflict; merge-time
+     Removed path -> Conflict; merge-time Added-only path -> Safe
+     (proving the Blueprint SS5.1 exclusion is real, not assumed);
+     region conflict alone (merge-time clean) -> Halt; merge-time drift
+     alone (no region conflict) -> Halt; both clear -> Proceed; the
+     exhaustive four-combination coverage test above; a Halt reason
+     carrying the actual changed paths / conflicting regions, not just a
+     variant tag."
+
+acceptance:
+  - "All VG-P2-W06-T01 proofs evidenced in verification report."
+
+non_goals:
+  - "Mission-level Blocked/Paused transition wiring; the four-way person
+     decision UI (P2-W07); performing the merge write itself; the
+     workspace mutation lock."
+
+risk_level: low
+risk_notes: >
+  Pure composition over two already-tested primitives (Baseline::diff
+  from P2-W02, MutationAttribution from P2-W05) -- no new external-process
+  dependency, no new I/O. The real risk is the same one flagged in
+  P2-W05's contract: being tempted to reach into mission-state wiring or
+  the person-decision UI to make the halt feel more "complete" before
+  the pieces that are supposed to consume this decision actually exist.
+  Guarded by forbidden_actions above.
+
+done_when:
+  - "decide_merge is proven, by the exhaustive four-combination test, to
+     return Proceed in exactly one of the four cases and Halt in the
+     other three. The Blueprint SS5.1 Added-file exclusion is proven by
+     a dedicated test, not merely implemented. Halt carries the actual
+     evidence (paths / regions) a person would need to make the
+     four-way choice later."
+```

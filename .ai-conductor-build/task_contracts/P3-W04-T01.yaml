@@ -1,0 +1,168 @@
+# Task Contract — P3-W04-T01
+
+```yaml
+contract_version: 1
+id: P3-W04-T01
+phase: P3
+status: IMPLEMENTED
+
+authority:
+  blueprint: "2.5.1"
+  protocol: "1.1"
+  phase_manifest: "1.1"
+
+section_refs:
+  - "Blueprint §28.4 (Scenario DSL — declarative format, one engine
+     executes all of them)"
+  - "Blueprint §28.5 (Full Virtual-World Simulator — cited for context;
+     not built here, see forbidden_actions)"
+  - "Phase Manifest §7.3 P3-W04 (\"connect the phase's failure scenarios
+     to that machinery\")"
+  - "Phase Manifest §7.4 (17 required failure families)"
+  - "Phase Manifest §7.5 (P3 gate: deterministic + replayable +
+     versioned + expected-outcome based + simulator-runnable)"
+
+objective: >
+  Implement Blueprint §28.4's Scenario DSL as real, executable Rust types
+  (setup/attempt/expected, mirroring the Blueprint's own YAML shape) and
+  a `run_scenario` engine that actually drives P2's and P3's already-
+  accepted primitives (Baseline, reconcile, FakeProvider, the mid-attempt
+  chaos edit) end to end — then cover all 17 of Phase Manifest §7.4's
+  required failure families as real, executed, asserted scenarios. This
+  is what "connect the phase's failure scenarios to that machinery"
+  means concretely: not a parser for scenario files (no file format or
+  CLI exists to load them from yet), but a real engine that takes a
+  Scenario value and produces a real, deterministic, comparable outcome.
+
+allowed_files:
+  - "PROJECT/crates/conductor-kernel/**"
+  - ".ai-conductor-build/task_contracts/P3-W04-T01.yaml"
+  - ".ai-conductor-build/verification_reports/P3-W04-T01.md"
+  - ".ai-conductor-build/BUILD_STATE.json"
+
+forbidden_files:
+  - "BLUEPRINT/**"
+  - "GOVERNANCE/**"
+  - "FAILURE_MEMORY/**"
+  - "KNOWLEDGE/**"
+  - "48 HOURS/**"
+
+forbidden_actions:
+  - "editing governing documents"
+  - "building the `conductor-sim` CLI crate or a YAML file loader --
+     Blueprint SS28.4's example is YAML, but no scenario-file-loading
+     orchestrator exists yet and adding a YAML-parsing dependency
+     (serde_yaml or equivalent) for a format nothing yet reads from disk
+     is premature; Scenario derives serde Serialize/Deserialize so it CAN
+     be loaded from a file format later without a redesign, but this task
+     constructs scenarios as Rust values, not from files."
+  - "building Blueprint SS28.5's full virtual-world simulator
+     (VirtualFilesystem/VirtualGit/VirtualProcess/VirtualUser) -- this
+     task's engine reuses the REAL filesystem inside a real temp
+     directory (the same pattern every P2/P3 module already uses for
+     testing) plus the already-built FakeProvider/VirtualClock/chaos
+     primitives; it does not build a second, fully-virtualized
+     environment layer."
+  - "inventing new FailureCategory/RecoveryStrategy Rust types to satisfy
+     the Blueprint YAML example's failure_category/recovery fields --
+     no such types exist anywhere in this crate yet (confirmed by grep),
+     and Blueprint doesn't specify them in enough detail in the sections
+     read for this task to responsibly invent them. Scenario carries
+     these two fields as an Option<String> label ONLY, not mechanically
+     checked -- documented as a deliberate, honest gap rather than a
+     type that looks authoritative but is invented"
+  - "adding a new FakeBehavior variant to provider.rs to more precisely
+     represent 5xx/quota-exhaustion -- provider.rs is already ACCEPTED;
+     this task maps those failure families onto the closest existing
+     FakeBehavior/ProviderResult field (Crash for 5xx, QuotaInfo.remaining
+     for quota exhaustion) rather than reopening an accepted module for a
+     new enum variant not requested by its own contract"
+  - "mechanically simulating ProcessTermination/CheckpointInterruption/
+     StatePersistenceInterruption beyond the same 'abort the remaining
+     scenario steps' marker chaos.rs already established -- no
+     attempt-execution orchestrator exists for these to really interrupt
+     (same repeatedly-confirmed gap since P2-W06)"
+
+dependencies:
+  - "P2-W02-T01 (Baseline), P2-W03-T01 (reconcile/ExpectedOperation),
+     P3-W01-T01 (FakeProvider), P3-W03-T01 (simulate_user_edit_mid_attempt) --
+     the engine drives all four directly."
+
+preconditions:
+  - "Phase 3 active; P3-W01 through P3-W03 accepted."
+
+inputs:
+  - "Blueprint §28.4's YAML example, reproduced as the equivalent Rust
+     Scenario shape."
+  - "Phase Manifest §7.4's 17 required failure families, each covered by
+     at least one real scenario."
+
+outputs:
+  - "conductor-kernel::scenario -- Scenario, ScenarioStep,
+     FailureFamily (17 variants, Phase Manifest SS7.4 verbatim),
+     ScenarioResult, run_scenario(&Scenario) -> Result<ScenarioResult, ...>."
+
+implementation_requirements:
+  - "run_scenario actually executes: writes setup files to a real temp
+     workspace, captures a real Baseline (P2-W02), runs each
+     ScenarioStep in order (Edit mutates a file; ProviderBehavior scripts
+     and calls a real FakeProvider; SimulatedUserEdit calls P3-W03's
+     simulate_user_edit_mid_attempt; the three abort-markers stop
+     execution of remaining steps, matching that no real interruption
+     mechanism exists to do more), re-captures a Baseline, and runs a
+     real reconcile() (P2-W03) to produce the actual outcome."
+  - "A failing ProviderBehavior step (any FakeBehavior that produces
+     Err) stops execution of subsequent steps -- this is what makes
+     Blueprint's own worked example (edit lands, then timeout) produce
+     PartialChange rather than ExpectedChange: the interruption is real,
+     not simulated by skipping straight to the expected answer."
+  - "Blueprint SS28.4's own worked example (timeout_after_partial_edit)
+     is reproduced as a literal scenario and its actual outcome is
+     asserted to equal the Blueprint's own stated expected outcome
+     (PartialChange) -- the strongest single proof this task can offer
+     that the DSL and the engine are faithful to the spec, not just to
+     this task's own invented examples."
+  - "All 17 of Phase Manifest SS7.4's required failure families are
+     covered by at least one real, executed, asserted scenario. Where no
+     direct FakeBehavior/mechanism exists (5xx, quota exhaustion, process
+     termination, persistence/checkpoint interruption, ambiguous
+     provider outcome), the closest available representation is used and
+     the mapping decision is documented explicitly in code, not silently
+     assumed."
+
+invariants_preserved: ["1", "2", "6", "8", "11", "13", "14"]
+invariants_proven: []
+
+required_tests:
+  - "cargo test: Blueprint's own worked example scenario, asserted
+     against its own stated expected outcome; one real, executed,
+     asserted scenario per each of the 17 required failure families
+     (Phase Manifest SS7.4); a determinism test proving running the same
+     Scenario twice (fresh workspaces) produces the same ScenarioResult."
+
+acceptance:
+  - "All VG-P3-W04-T01 proofs evidenced in verification report."
+
+non_goals:
+  - "The `conductor-sim` CLI crate; YAML/file-based scenario loading;
+     Blueprint SS28.5's full virtual-world simulator; new
+     FailureCategory/RecoveryStrategy types; new FakeBehavior variants."
+
+risk_level: medium
+risk_notes: >
+  Largest single-task surface area since P2-W01 -- 17 required scenarios
+  plus the engine itself. Mitigated by reusing only already-accepted,
+  already-tested primitives (nothing new at the I/O layer beyond what
+  P2/P3 already established) and by documenting every non-obvious mapping
+  decision (5xx, quota exhaustion, the three abort-markers) explicitly
+  rather than letting them look more precisely modeled than they are.
+
+done_when:
+  - "Blueprint's own worked example scenario is reproduced and proven to
+     produce PartialChange, matching the spec exactly. All 17 required
+     failure families have at least one real, executed, asserted
+     scenario each. Running the same scenario twice is proven to produce
+     the same result (the 'deterministic + replayable' half of Phase
+     Manifest SS7.5's P3 gate definition, made concrete for this
+     primitive)."
+```

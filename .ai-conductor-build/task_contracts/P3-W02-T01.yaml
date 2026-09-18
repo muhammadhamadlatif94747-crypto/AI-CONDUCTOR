@@ -1,0 +1,144 @@
+# Task Contract — P3-W02-T01
+
+```yaml
+contract_version: 1
+id: P3-W02-T01
+phase: P3
+status: IMPLEMENTED
+
+authority:
+  blueprint: "2.5.1"
+  protocol: "1.1"
+  phase_manifest: "1.1"
+
+section_refs:
+  - "Blueprint §10.2's hard architecture rule (\"no file in the
+     reliability core may call the real system clock directly... all
+     such reads go through an injectable Clock trait, with a RealClock
+     implementation in production and a VirtualClock in tests\")"
+  - "Blueprint §28.5 (VirtualClock as part of the full virtual-world
+     simulator; \"clock advances 30s\" as an explicit composite-scenario
+     operation)"
+  - "Phase Manifest §7.3 P3-W02 (\"the virtual clock required for instant
+     deterministic time-dependent tests\")"
+
+objective: >
+  Implement the `Clock` trait plus its two implementations
+  (`RealClock`/`VirtualClock`) that Blueprint §10.2's hard rule requires
+  and that every module since P1 has been written in anticipation of:
+  `event.rs`'s `ClockSource::{Real,Virtual}` already tags every event
+  with which kind of clock produced its timestamp, but nothing until now
+  actually implements either kind, or the one sanctioned call site for
+  `SystemTime::now()` the rule requires.
+
+allowed_files:
+  - "PROJECT/crates/conductor-kernel/**"
+  - ".ai-conductor-build/task_contracts/P3-W02-T01.yaml"
+  - ".ai-conductor-build/verification_reports/P3-W02-T01.md"
+  - ".ai-conductor-build/BUILD_STATE.json"
+
+forbidden_files:
+  - "BLUEPRINT/**"
+  - "GOVERNANCE/**"
+  - "FAILURE_MEMORY/**"
+  - "KNOWLEDGE/**"
+  - "48 HOURS/**"
+
+forbidden_actions:
+  - "editing governing documents"
+  - "retrofitting existing call sites (console.rs::request_attempt_cancellation,
+     person_decision.rs::record_person_decision) to take a &dyn Clock
+     instead of a plain now_ms: u64 parameter. Those functions already
+     correctly follow the no-direct-clock-read rule -- the caller
+     supplies the timestamp, not the function itself reading a clock --
+     and reopening two already-ACCEPTED, tested modules to change their
+     signatures is not what this task was asked to do. Clock's job is to
+     be a legal SOURCE of a now_ms value at the top of a call chain
+     (e.g. a future orchestrator holding a Clock and calling it once);
+     it is not a mandate to inject a Clock parameter into every
+     timestamp-consuming function that already exists."
+  - "implementing Chaos Mode (P3-W03) or Scenario execution (P3-W04) --
+     this task provides the clock primitive those will use, not their
+     own logic"
+  - "adding a second, competing timestamp-generation mechanism anywhere
+     -- RealClock::now_ms is the ONE sanctioned SystemTime::now() call
+     site in the whole crate; confirmed by grep before writing any code
+     that no other direct clock read exists anywhere (Phase 2's own
+     gate audit already confirmed this for every module through P2W07)"
+
+dependencies: []
+
+preconditions:
+  - "Phase 3 active."
+  - "event.rs's ClockSource enum exists (P1) for Clock to report against."
+
+inputs:
+  - "Blueprint §10.2's hard architecture rule, reproduced as the crate's
+     actual enforcement mechanism (one trait, two implementations, one
+     legal direct-clock-read site)."
+  - "Blueprint §28.5's 'clock advances 30s' example as the concrete
+     capability VirtualClock::advance must provide."
+
+outputs:
+  - "conductor-kernel::clock -- Clock (trait: now_ms(&self) -> u64,
+     source(&self) -> ClockSource), RealClock (wraps the crate's one
+     legal SystemTime::now() call), VirtualClock (starts at a caller-
+     chosen value, advances deterministically and instantly by a
+     caller-chosen Duration, never touches real time)."
+
+implementation_requirements:
+  - "RealClock::now_ms is the only SystemTime::now() (or equivalent)
+     call anywhere in the crate -- verified by a crate-wide grep in the
+     verification report, the same audit method used for the P2 phase
+     gate, not merely asserted."
+  - "VirtualClock::advance(delta) moves now_ms() forward by EXACTLY
+     delta, deterministically -- proven by exact-value assertions, not
+     approximate/tolerance-based ones (unlike RealClock, which by its
+     nature can only be sanity-bounded against real wall-clock time)."
+  - "Both RealClock and VirtualClock implement the same Clock trait and
+     are usable interchangeably through a trait object (&dyn Clock /
+     Box<dyn Clock>) -- proven by a test that constructs each behind the
+     trait object and calls through it, not just calling the concrete
+     types directly."
+  - "Clock::source() lets a caller tag an event/record with the correct
+     ClockSource without hand-matching on which concrete clock type it
+     holds."
+  - "VirtualClock is Send + Sync (uses AtomicU64 internally, consistent
+     with mutation_attribution.rs's existing AtomicU64 nonce pattern --
+     reusing a style already established in this crate rather than
+     introducing RefCell/Mutex for no added benefit)."
+
+invariants_preserved: ["1", "2", "8"]
+invariants_proven: []
+
+required_tests:
+  - "cargo test: RealClock::now_ms is sanity-bounded against real wall
+     time (generous tolerance, since it IS real time -- this is the one
+     place in the crate such a comparison is legitimate);
+     RealClock::source() == Real; VirtualClock starts at a specified
+     value; VirtualClock::advance moves now_ms forward by exactly the
+     given Duration; multiple advances accumulate correctly;
+     VirtualClock::source() == Virtual; both clocks work correctly
+     through a &dyn Clock trait object."
+
+acceptance:
+  - "All VG-P3-W02-T01 proofs evidenced in verification report."
+
+non_goals:
+  - "Retrofitting P1/P2 call sites to take a Clock parameter; Chaos Mode
+     (P3-W03); Scenario execution (P3-W04)."
+
+risk_level: low
+risk_notes: >
+  Small, self-contained module -- a trait and two small structs, no I/O
+  beyond the one sanctioned SystemTime::now() call. The only real risk is
+  scope creep into retrofitting existing modules, guarded by
+  forbidden_actions above.
+
+done_when:
+  - "RealClock is proven to be the crate's sole direct-clock-read site
+     (grep-audited, not assumed). VirtualClock::advance is proven exact,
+     not approximate. Both implementations are proven usable
+     interchangeably through the Clock trait object, not just as
+     concrete types."
+```

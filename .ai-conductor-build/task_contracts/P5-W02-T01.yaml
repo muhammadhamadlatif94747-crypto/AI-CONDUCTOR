@@ -1,0 +1,155 @@
+# Task Contract — P5-W02-T01
+
+```yaml
+contract_version: 1
+id: P5-W02-T01
+phase: P5
+status: IMPLEMENTED
+
+authority:
+  blueprint: "2.5.1"
+  protocol: "1.1"
+  execution_adapter_contract: "1.0"
+  phase_manifest: "1.1"
+
+section_refs:
+  - "Phase Manifest §9.3 P5-W02 (\"Record executor identity,
+     version/commit, capabilities, workspace behavior, lifecycle
+     semantics, and verification provenance\")"
+  - "Execution Adapter Contract v1.0 §12 (Workspace Rule -- the concrete
+     thing 'workspace behavior' means: does the executor ever mutate the
+     live workspace directly, or only the Conductor-created isolated one)"
+  - "Blueprint §4.5 (Evidence provenance/freshness -- reused directly for
+     'verification provenance')"
+
+objective: >
+  Define the durable Executor Capability Snapshot record — combining
+  P5-W01's `ExecutorIdentity`/`CapabilitySnapshot` (pulled directly from
+  a real `ExecutionAdapter`) with workspace-behavior and lifecycle-
+  semantics observations (which cannot come from the adapter's own
+  identity/capability methods — they require actually running scenarios
+  against a real executor, P5-W03/W04's job) and evidence provenance
+  (reusing P4-W02's `Evidence` types directly) — and a real, durable
+  recording mechanism via this crate's established `EventLog` pattern
+  (`console.rs`, `person_decision.rs`), not an in-memory struct that
+  disappears when the process exits.
+
+allowed_files:
+  - "PROJECT/crates/conductor-kernel/**"
+  - ".ai-conductor-build/task_contracts/P5-W02-T01.yaml"
+  - ".ai-conductor-build/verification_reports/P5-W02-T01.md"
+  - ".ai-conductor-build/BUILD_STATE.json"
+
+forbidden_files:
+  - "BLUEPRINT/**"
+  - "GOVERNANCE/**"
+  - "FAILURE_MEMORY/**"
+  - "KNOWLEDGE/**"
+  - "48 HOURS/**"
+
+forbidden_actions:
+  - "editing governing documents"
+  - "claiming a real executor's workspace behavior or lifecycle
+     semantics were actually observed -- confirmed at Phase 5 entry that
+     no real executor is available in this environment. This task's own
+     tests capture a snapshot FROM FakeExecutionAdapter (P5-W01) with
+     caller-supplied workspace-behavior/lifecycle-semantics values,
+     clearly not a real observation; the mechanism is proven real, the
+     content is clearly labeled as a test double's, not Aider's or
+     Jcode's."
+  - "reopening execution_adapter.rs (P5-W01, already accepted) to add
+     workspace-behavior/lifecycle-semantics probe methods to the
+     ExecutionAdapter trait -- those dimensions require running real
+     scenarios and observing real results (P5-W03/W04's job), not a
+     queryable property of the adapter itself the way identity/
+     capabilities are; adding speculative probe methods now, with
+     nothing real to call them against, would be exactly the kind of
+     premature interface commitment this crate's discipline avoids."
+  - "reopening evidence.rs (P4-W02) or event_log.rs (P1) -- both reused
+     directly as already-accepted, already-tested primitives"
+
+dependencies:
+  - "P5-W01-T01 (ExecutionAdapter, ExecutorIdentity, CapabilitySnapshot)
+     -- the snapshot pulls both directly from a real adapter."
+  - "P4-W02-T01 (Evidence, EvidenceProvenance, IntegrityLevel) -- reused
+     directly for the 'verification provenance' dimension, not a second
+     provenance concept."
+  - "P1's event_log.rs / event.rs (EventLog, NewEvent, EventContext) --
+     reused directly for durable recording, the same pattern
+     console.rs/person_decision.rs already established."
+
+preconditions:
+  - "Phase 5 active; P5-W01 accepted."
+
+inputs:
+  - "Phase Manifest §9.3 P5-W02's six-dimension list, each represented as
+     a field or sub-struct on the snapshot record."
+
+outputs:
+  - "conductor-kernel::executor_capability_snapshot --
+     WorkspaceBehaviorNotes, LifecycleSemanticsNotes,
+     ExecutorCapabilitySnapshotRecord, capture_snapshot(adapter, ...) ->
+     ExecutorCapabilitySnapshotRecord, record_executor_capability_snapshot(
+     store_dir, context, record, now_ms) -> Result<(), ConsoleError>
+     (durable persistence via EventLog)."
+
+implementation_requirements:
+  - "capture_snapshot pulls identity and capabilities directly from a
+     real &dyn ExecutionAdapter (identity()/capabilities() calls, not
+     re-typed or re-entered by hand) -- proven by a test using
+     FakeExecutionAdapter through the trait object, the same pattern
+     P5-W01 already established."
+  - "WorkspaceBehaviorNotes and LifecycleSemanticsNotes are supplied by
+     the caller (not derivable from ExecutionAdapter's own methods, per
+     forbidden_actions above) -- each field is a CapabilityValue
+     tri-state (P5-W01's type, reused directly), never a bool, so an
+     unobserved behavior is recorded as Unknown, not silently assumed
+     favorable or unfavorable."
+  - "The 'verification provenance' dimension reuses P4-W02's Evidence
+     fields directly (provenance: EvidenceProvenance, integrity:
+     IntegrityLevel, captured_at_ms: u64) -- not a duplicated provenance
+     concept."
+  - "record_executor_capability_snapshot writes a real event via the
+     same EventLog::open/NewEvent path console.rs/person_decision.rs
+     already use -- now_ms caller-supplied (no direct clock read, AC-12),
+     proven by reading the event back from a real temp store and
+     asserting its content, the same pattern person_decision.rs's own
+     tests already established."
+
+invariants_preserved: ["1", "2", "8", "11", "14"]
+invariants_proven: []
+
+required_tests:
+  - "cargo test: capture_snapshot correctly pulls identity/capabilities
+     from a real FakeExecutionAdapter through the trait object;
+     WorkspaceBehaviorNotes/LifecycleSemanticsNotes fields default-absent
+     cases are Unknown, never silently Supported/Unsupported;
+     record_executor_capability_snapshot writes a real event to a real
+     temp EventLog and the snapshot's content is read back and asserted
+     intact; no direct system-clock read anywhere in this module
+     (grep-audited)."
+
+acceptance:
+  - "All VG-P5-W02-T01 proofs evidenced in verification report."
+
+non_goals:
+  - "Actually observing a real executor's workspace behavior or
+     lifecycle semantics (P5-W03/W04, blocked by this environment's lack
+     of a real executor); adding new probe methods to ExecutionAdapter."
+
+risk_level: low
+risk_notes: >
+  Composes only already-accepted primitives (P5-W01's adapter/types,
+  P4-W02's Evidence types, P1's EventLog) with one new record struct and
+  one new persistence function. The only real risk is implying more
+  real-executor observation happened than actually did -- guarded by
+  forbidden_actions and by every test clearly using FakeExecutionAdapter,
+  never presented as Aider/Jcode data.
+
+done_when:
+  - "ExecutorCapabilitySnapshotRecord captures all six of Phase Manifest
+     SS9.3 P5-W02's named dimensions. capture_snapshot is proven to pull
+     identity/capabilities from a real adapter through the trait object.
+     record_executor_capability_snapshot is proven to write a real,
+     durable event that can be read back with its content intact."
+```

@@ -1,0 +1,160 @@
+# Task Contract — P2-W03-T01
+
+```yaml
+contract_version: 1
+id: P2-W03-T01
+phase: P2
+status: IMPLEMENTED
+
+authority:
+  blueprint: "2.4"
+  protocol: "1.0"
+  phase_manifest: "1.0"
+
+section_refs:
+  - "Blueprint §4.3 (Reconciliation Outcome — A Separate Enum)"
+  - "Blueprint §6 (The Reconciliation Engine, Expanded)"
+  - "Phase Manifest §6.3 P2-W03"
+  - "Phase Manifest §6.4 (restart during reconciliation, changed baseline,
+     partial change -- the subset of required failure tests this task
+     owns)"
+
+objective: >
+  Implement and unit-test the Reconciliation Engine per Blueprint §6's
+  algorithm: given a captured Baseline (P2-W02), a re-capture of the
+  workspace's current state, and the attempt's expected_operation, produce
+  a ReconciliationOutcome (Blueprint §4.3) that answers "what did the
+  evidence show" -- as its own real, independently callable, unit-tested
+  function, never inline logic. Per Invariant 14 / Blueprint §4.3's
+  explicit correction, reconciliation NEVER sets AttemptStatus::Succeeded
+  itself; its outcome is handed to the Verification Engine (Section 7,
+  not yet built), which is the only legal path to Succeeded.
+
+allowed_files:
+  - "PROJECT/crates/conductor-kernel/**"
+  - ".ai-conductor-build/task_contracts/P2-W03-T01.yaml"
+  - ".ai-conductor-build/verification_reports/P2-W03-T01.md"
+  - ".ai-conductor-build/BUILD_STATE.json"
+
+forbidden_files:
+  - "BLUEPRINT/**"
+  - "GOVERNANCE/**"
+  - "FAILURE_MEMORY/**"
+  - "KNOWLEDGE/**"
+  - "48 HOURS/**"
+
+forbidden_actions:
+  - "editing governing documents"
+  - "setting AttemptStatus::Succeeded from reconciliation logic, directly
+     or indirectly (Invariant 14; that transition does not exist in this
+     crate yet at all -- P2-W04 makes it protected once it does)"
+  - "implementing mutation attribution / line-region classification
+     (Blueprint §4.6, P2-W05) -- this task operates at whole-file
+     granularity only, the granularity Baseline (P2-W02) actually
+     produces"
+  - "implementing conflict detection / region-overlap logic (P2-W06) --
+     ReconciliationOutcome::Conflict and ::UserChangeDetected are defined
+     in the enum for Blueprint-fidelity but this task's reconcile()
+     function never produces them, since producing them correctly
+     requires attribution data (P2-W05) and overlap detection (P2-W06)
+     that do not exist yet; claiming to detect either now, without that
+     data, would be exactly the false-confidence failure mode the
+     Blueprint exists to prevent"
+  - "implementing the Verification Engine (Section 7) -- reconciliation
+     observes and classifies; it does not decide success"
+
+dependencies:
+  - "P2-W02-T01 (baseline capture) -- reconciliation operates on the
+     Baseline/PathChange types that module produces."
+
+preconditions:
+  - "Phase 2 active."
+  - "A Baseline can be captured for both the pre-attempt and post-attempt
+     workspace states (P2-W02)."
+
+inputs:
+  - "Blueprint §4.3's ReconciliationOutcome enum -- reproduced verbatim as
+     the six-variant Rust enum."
+  - "Blueprint §6's numbered algorithm (steps 1-7) and its restart-safety
+     paragraph."
+  - "Blueprint §4.4's expected_operation shape (`files`, `intent`)."
+
+outputs:
+  - "conductor-kernel::reconciliation -- ReconciliationOutcome,
+     ExpectedOperation, reconcile(before: &Baseline, after: &Baseline,
+     expected: &ExpectedOperation) -> ReconciliationOutcome."
+
+implementation_requirements:
+  - "ReconciliationOutcome is the exact six-variant enum from Blueprint
+     §4.3 (NoChange, ExpectedChange, UnexpectedChange, PartialChange,
+     UserChangeDetected, Conflict) -- not a subset invented for
+     convenience, even though this task's reconcile() only ever produces
+     four of the six (see forbidden_actions above for why the other two
+     are excluded from this function's actual output)."
+  - "reconcile() must be a pure, deterministic function of its three
+     inputs -- no hidden state, no I/O of its own. This IS how this task
+     satisfies Blueprint §6's restart-safety requirement: rather than
+     checkpointing intermediate steps of a stateful multi-step process,
+     reconciliation here is a single-shot computation over durable inputs
+     (a previously-captured Baseline, a fresh re-capture, and the
+     recorded expected_operation) -- restarting after a crash simply means
+     calling it again, and it reproduces the identical outcome, because
+     there is no partial internal state to have been interrupted
+     mid-way. This design decision is documented in the module and
+     exercised by an explicit restart-safety test (call twice with
+     identical inputs post-\"crash\", assert identical outcome)."
+  - "NoChange: the diff between before/after is empty."
+  - "ExpectedChange: every file in expected_operation.files changed, and
+     no file outside that set changed."
+  - "PartialChange: at least one (but not all) of expected_operation.files
+     changed, and no file outside that set changed."
+  - "UnexpectedChange: any file outside expected_operation.files changed
+     (regardless of whether the expected files also changed) -- treated
+     conservatively as 'not what was requested' per Blueprint §4.3's
+     description, rather than trying to partially credit it."
+  - "An empty expected_operation.files with a non-empty diff is
+     UnexpectedChange -- nothing was declared expected, so anything that
+     changed is, by definition, not what was requested."
+
+invariants_preserved: ["1", "2", "8", "11", "14"]
+invariants_proven: []
+
+required_tests:
+  - "cargo test: deterministic unit tests covering NoChange, exact
+     ExpectedChange, PartialChange (subset of expected files changed),
+     UnexpectedChange via an extra unrequested file, UnexpectedChange via
+     an empty expected_operation, UnexpectedChange when expected files
+     changed alongside an unexpected one, the empty-baseline/empty-diff
+     edge case, and a restart-safety test proving identical inputs always
+     reproduce an identical outcome (Phase Manifest §6.4's 'restart during
+     reconciliation')."
+
+acceptance:
+  - "All VG-P2-W03-T01 proofs evidenced in verification report."
+
+non_goals:
+  - "Protected Succeeded transition (P2-W04); mutation attribution
+     (P2-W05); conflict detection (P2-W06); person decision path
+     (P2-W07); the Verification Engine (Section 7)."
+
+risk_level: low
+risk_notes: >
+  Pure data-transformation logic over already-tested Baseline/PathChange
+  types (P2-W02) -- no external process, no filesystem I/O of its own.
+  The real risk is the same kind of scope-creep risk as P2-W02: being
+  tempted to half-implement UserChangeDetected/Conflict without the
+  attribution/overlap machinery those actually require, producing an
+  outcome that looks rigorous but isn't backed by real data. Guarded by
+  forbidden_actions above and by simply not implementing those two
+  branches at all rather than approximating them.
+
+done_when:
+  - "Reconciliation is proven deterministic: the same (before, after,
+     expected_operation) triple always produces the same
+     ReconciliationOutcome, verified by an explicit restart-safety test.
+     NoChange/ExpectedChange/PartialChange/UnexpectedChange are each
+     correctly produced for real Baseline diffs constructed to exercise
+     that specific case. reconcile() never sets or references any
+     AttemptStatus -- it returns only a ReconciliationOutcome, with
+     nothing in the module capable of writing a Succeeded transition."
+```

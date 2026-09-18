@@ -1,0 +1,74 @@
+# Task Contract — P0-W02-T01
+
+```yaml
+contract_version: 1
+id: P0-W02-T01
+phase: P0
+status: IMPLEMENTED
+
+authority:
+  blueprint: "2.4"
+  protocol: "1.0"
+  phase_manifest: "1.0"
+
+section_refs:
+  - "Blueprint §4.5, §4.1.1"
+  - "Verification Gates §7-9"
+  - "Phase Manifest P0-C02"
+
+objective: >
+  Define the Evidence record contract: provenance classes, freshness representation,
+  and invalidation rules so later phases implement evidence handling without reinterpretation.
+
+allowed_files:
+  - ".ai-conductor-build/architecture_changes/AC-02-evidence-provenance-freshness.md"
+  - ".ai-conductor-build/task_contracts/P0-W02-T01.yaml"
+  - ".ai-conductor-build/verification_reports/P0-W02-T01.md"
+  - ".ai-conductor-build/BUILD_STATE.json"
+
+forbidden_files:
+  - "PROJECT/**"
+  - "BLUEPRINT/**"
+  - "GOVERNANCE/**"
+  - "FAILURE_MEMORY/**"
+  - "KNOWLEDGE/**"
+  - "48 HOURS/**"
+
+forbidden_actions:
+  - "any production code"
+  - "editing governing documents"
+
+dependencies:
+  - "P0-W01-T01 accepted"
+
+preconditions:
+  - "Phase 0 active."
+
+inputs:
+  - "Blueprint §4.5; Verification Gates §7-9; Build Protocol §12."
+
+outputs:
+  - "AC-02 architecture contract."
+
+implementation_requirements:
+  - "Canonical field list incl. clock_source, execution_id, state_binding."
+  - "Six provenance classes exactly as Blueprint defines them."
+  - "Fail-closed freshness rules; UNKNOWN never becomes PASS."
+
+invariants_preserved: ["2","3","4","7","8","14"]
+invariants_proven: []
+
+required_tests:
+  - "Level 1 deterministic: contract self-checklist."
+
+acceptance:
+  - "All five P0-C02 definitions present and internally consistent."
+
+non_goals:
+  - "Acceptance-contract format (AC-08); pipeline mechanics (P4)."
+
+risk_level: low
+
+done_when:
+  - "Verification report records all five required definitions present."
+```

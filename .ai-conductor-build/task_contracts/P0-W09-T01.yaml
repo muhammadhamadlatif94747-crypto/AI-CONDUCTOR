@@ -1,0 +1,74 @@
+# Task Contract — P0-W09-T01
+
+```yaml
+contract_version: 1
+id: P0-W09-T01
+phase: P0
+status: IMPLEMENTED
+
+authority:
+  blueprint: "2.4"
+  protocol: "1.0"
+  phase_manifest: "1.0"
+
+section_refs:
+  - "Blueprint §5, §5.1, §3 Invariant 13"
+  - "Build Protocol §13"
+  - "Phase Manifest P0-C09"
+
+objective: >
+  Formalize the two-phase merge + Git edge-case contract, preserving the
+  Blueprint's conditional expected-state merge semantics.
+
+allowed_files:
+  - ".ai-conductor-build/architecture_changes/AC-09-two-phase-merge-git-edge-cases.md"
+  - ".ai-conductor-build/task_contracts/P0-W09-T01.yaml"
+  - ".ai-conductor-build/verification_reports/P0-W09-T01.md"
+  - ".ai-conductor-build/BUILD_STATE.json"
+
+forbidden_files:
+  - "PROJECT/**"
+  - "BLUEPRINT/**"
+  - "GOVERNANCE/**"
+  - "FAILURE_MEMORY/**"
+  - "KNOWLEDGE/**"
+  - "48 HOURS/**"
+
+forbidden_actions:
+  - "any production code"
+  - "editing governing documents"
+
+dependencies:
+  - "P0-W08-T01 accepted (construction order §30)"
+  - "AC-09 draft pre-staged at P0-W05 (order reconciliation)"
+
+preconditions:
+  - "Phase 0 active."
+
+inputs:
+  - "Pre-staged AC-09 draft; Blueprint §5/§5.1 edge-case table and lock-scope correction."
+
+outputs:
+  - "AC-09 architecture contract formalized (version 1)."
+
+implementation_requirements:
+  - "Isolation rule; conditional expected-state merge sequence; binding edge-case table."
+  - "Post-merge verification before any checkpoint."
+
+invariants_preserved: ["5","6","7","11","12","13","14"]
+invariants_proven: []
+
+required_tests:
+  - "Level 1 deterministic: contract self-checklist."
+
+acceptance:
+  - "Contract consistent with Blueprint §5/§5.1, Invariant 13, AC-01, AC-02."
+
+non_goals:
+  - "Worktree lifecycle internals (P2-W02); reconciliation algorithms (P2-W03); verification pipeline."
+
+risk_level: low
+
+done_when:
+  - "Verification report records isolation rule + conditional-merge semantics + edge-case table present."
+```

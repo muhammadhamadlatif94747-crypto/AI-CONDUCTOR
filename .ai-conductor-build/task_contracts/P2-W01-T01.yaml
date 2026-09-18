@@ -1,0 +1,120 @@
+# Task Contract — P2-W01-T01
+
+```yaml
+contract_version: 1
+id: P2-W01-T01
+phase: P2
+status: IMPLEMENTED
+
+authority:
+  blueprint: "2.4"
+  protocol: "1.0"
+  phase_manifest: "1.0"
+
+section_refs:
+  - "Blueprint §5 (Workspace Isolation & Git Worktree Safety)"
+  - "Phase Manifest §6.3 P2-W01"
+  - "Phase Manifest §6.5 P2 gate (isolated execution proven)"
+
+objective: >
+  Every attempt executes in its own isolated Git worktree. The live user
+  workspace is never directly modified by anything operating inside an
+  attempt workspace. `git worktree add` is the concrete mechanism per
+  Blueprint §5 ("cheap, fast, already part of Git, no new dependency").
+  This task delivers the isolation primitive itself -- creation, teardown,
+  and crash-safe recovery of stale worktree state -- not baseline capture
+  (P2-W02) or reconciliation (P2-W03), which build on top of it.
+
+allowed_files:
+  - "PROJECT/crates/conductor-kernel/**"
+  - ".ai-conductor-build/task_contracts/P2-W01-T01.yaml"
+  - ".ai-conductor-build/verification_reports/P2-W01-T01.md"
+  - ".ai-conductor-build/BUILD_STATE.json"
+
+forbidden_files:
+  - "BLUEPRINT/**"
+  - "GOVERNANCE/**"
+  - "FAILURE_MEMORY/**"
+  - "KNOWLEDGE/**"
+  - "48 HOURS/**"
+
+forbidden_actions:
+  - "editing governing documents"
+  - "integrating real Aider/providers (still out of scope for P2-W01 specifically)"
+  - "implementing baseline capture or reconciliation logic (P2-W02/P2-W03)"
+  - "implementing the two-phase merge lock (P2-W04+, Invariant 13)"
+
+dependencies:
+  - "Phase 1 accepted by human (P1-ACCEPT, this session)"
+
+preconditions:
+  - "Phase 2 active."
+  - "A real `git` binary is available on the executing machine (external
+     dependency, not vendored -- consistent with Blueprint §5's framing of
+     worktrees as reusing existing Git mechanics, not new infrastructure)."
+
+inputs:
+  - "Blueprint §5's worktree-isolation diagram and rationale."
+  - "Blueprint §5's Git edge-case table (referenced for future baseline/
+     reconciliation work; not all rows apply to creation/teardown itself)."
+
+outputs:
+  - "conductor-kernel::worktree -- WorktreeManager::create/remove/
+     list_registered, AttemptWorkspace, WorktreeError."
+
+implementation_requirements:
+  - "create() must produce a path structurally distinct from the live
+     repository (under a separate workspaces_root), never inside it."
+  - "create() must not mutate the live repository's tracked files or
+     working-tree status as an observable side effect."
+  - "Writes performed inside an attempt workspace must never appear in
+     the live repository unless and until an explicit merge step runs
+     (out of scope here -- P2-W04+); this task proves the negative
+     (isolation holds), not the positive (merge works)."
+  - "remove() must be safe to call even when the on-disk worktree
+     directory was already deleted out from under Git (simulating a
+     crash mid-attempt) -- recover via prune, never panic or leave the
+     live repo's worktree registry in a state that blocks future use."
+  - "list_registered() must reflect Git's own ground truth (`git worktree
+     list`), not an independently-maintained ledger that could drift from
+     it -- this is what a restart uses to rediscover in-flight attempts."
+  - "All Git interaction goes through explicit `std::process::Command`
+     invocations with captured stdout/stderr surfaced in WorktreeError on
+     failure -- no silent swallowing of a non-zero exit code."
+
+invariants_preserved: ["1", "2", "8", "11"]
+invariants_proven: []
+
+required_tests:
+  - "cargo test: deterministic unit tests against real temporary Git
+     repositories (no mocked Git) -- isolation of tracked-file content,
+     isolation of working-tree writes, checkout-at-base-commit isolation,
+     concurrent multi-attempt independence, and the crash/stale-worktree
+     recovery scenario specifically called out in Phase Manifest §6.4
+     (\"unexpected process exit\")."
+
+acceptance:
+  - "All VG-P2-W01-T01 proofs evidenced in verification report."
+
+non_goals:
+  - "Baseline capture (P2-W02); Reconciliation Engine (P2-W03); protected
+     Succeeded transition (P2-W04); mutation attribution (P2-W05);
+     conflict detection (P2-W06); person decision path (P2-W07)."
+
+risk_level: medium
+risk_notes: >
+  First task in the crate that shells out to an external process (`git`)
+  rather than operating purely on local files -- introduces a genuine
+  external dependency (the `git` binary's presence and behavior) that
+  prior P1 work did not have. Verified against real Git repositories, not
+  mocked, specifically to avoid a false sense of proof from a stubbed
+  interface.
+
+done_when:
+  - "Isolated worktree execution is proven: an attempt workspace is
+     created at a path distinct from the live workspace; writes inside it
+     are never observed in the live workspace; the live workspace's
+     tracked-file content and Git status are unaffected by worktree
+     creation, use, or teardown; a worktree directory deleted out from
+     under Git (crash simulation) is recovered cleanly on next use."
+```

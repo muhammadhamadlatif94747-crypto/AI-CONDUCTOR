@@ -1,0 +1,74 @@
+# Task Contract — P0-W11-T01
+
+```yaml
+contract_version: 1
+id: P0-W11-T01
+phase: P0
+status: IMPLEMENTED
+
+authority:
+  blueprint: "2.4"
+  protocol: "1.0"
+  phase_manifest: "1.0"
+
+section_refs:
+  - "Blueprint §10.5, §3 Invariant 16"
+  - "Build Protocol §13"
+  - "Phase Manifest P0-C11"
+
+objective: >
+  Define the idempotency classification model required by Invariant 16 — before
+  any provider or tool-retry implementation exists to misuse it.
+
+allowed_files:
+  - ".ai-conductor-build/architecture_changes/AC-11-external-side-effect-idempotency.md"
+  - ".ai-conductor-build/task_contracts/P0-W11-T01.yaml"
+  - ".ai-conductor-build/verification_reports/P0-W11-T01.md"
+  - ".ai-conductor-build/BUILD_STATE.json"
+
+forbidden_files:
+  - "PROJECT/**"
+  - "BLUEPRINT/**"
+  - "GOVERNANCE/**"
+  - "FAILURE_MEMORY/**"
+  - "KNOWLEDGE/**"
+  - "48 HOURS/**"
+
+forbidden_actions:
+  - "any production code"
+  - "editing governing documents"
+
+dependencies:
+  - "P0-W10-T01 accepted (construction order §30)"
+
+preconditions:
+  - "Phase 0 active."
+
+inputs:
+  - "Blueprint §10.5 enum + decision flow; Invariant 16."
+
+outputs:
+  - "AC-11 architecture contract."
+
+implementation_requirements:
+  - "Three-value classification exactly per Blueprint; default Unknown."
+  - "Key-generation never upgrades classification."
+  - "Ambiguous-outcome branch: retry / query-and-reconcile / surface Unknown."
+
+invariants_preserved: ["3","5","8","16"]
+invariants_proven: []
+
+required_tests:
+  - "Level 1 deterministic: contract self-checklist."
+
+acceptance:
+  - "Model consistent with Blueprint §10.5 and AC-01/AC-02 unknown handling."
+
+non_goals:
+  - "Registry internals; outbox mechanics; provider adapters."
+
+risk_level: low
+
+done_when:
+  - "Verification report records the classification model present and fail-closed."
+```

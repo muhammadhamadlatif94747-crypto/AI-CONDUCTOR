@@ -1,0 +1,74 @@
+# Task Contract — P0-W04-T01
+
+```yaml
+contract_version: 1
+id: P0-W04-T01
+phase: P0
+status: IMPLEMENTED
+
+authority:
+  blueprint: "2.4"
+  protocol: "1.0"
+  phase_manifest: "1.0"
+
+section_refs:
+  - "Blueprint §4.9, §15"
+  - "Build Protocol §13"
+  - "Phase Manifest P0-C04"
+
+objective: >
+  Define the tamper-evident event chain contract: chaining rule, anchor mechanism,
+  and the exact threat model — before P1 event-log implementation.
+
+allowed_files:
+  - ".ai-conductor-build/architecture_changes/AC-04-event-chain.md"
+  - ".ai-conductor-build/task_contracts/P0-W04-T01.yaml"
+  - ".ai-conductor-build/verification_reports/P0-W04-T01.md"
+  - ".ai-conductor-build/BUILD_STATE.json"
+
+forbidden_files:
+  - "PROJECT/**"
+  - "BLUEPRINT/**"
+  - "GOVERNANCE/**"
+  - "FAILURE_MEMORY/**"
+  - "KNOWLEDGE/**"
+  - "48 HOURS/**"
+
+forbidden_actions:
+  - "any production code"
+  - "editing governing documents"
+
+dependencies:
+  - "P0-W03-T01 accepted (recovery sequence consumes chain verification)"
+
+preconditions:
+  - "Phase 0 active."
+
+inputs:
+  - "Blueprint §4.9 incl. threat model table; Build Protocol §13."
+
+outputs:
+  - "AC-04 architecture contract."
+
+implementation_requirements:
+  - "Hash-chain rule exactly as Blueprint defines."
+  - "Anchors in separate storage; checked on load; fail-closed."
+  - "Threat model stated without overclaim."
+
+invariants_preserved: ["5","6","8","9","10"]
+invariants_proven: []
+
+required_tests:
+  - "Level 1 deterministic: contract self-checklist."
+
+acceptance:
+  - "All three P0-C04 definitions present and consistent with Blueprint §4.9 and AC-03."
+
+non_goals:
+  - "Outbox mechanics; per-phase event taxonomy; UI."
+
+risk_level: low
+
+done_when:
+  - "Verification report records all three required definitions present."
+```

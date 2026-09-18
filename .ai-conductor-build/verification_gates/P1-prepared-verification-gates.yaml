@@ -1,0 +1,94 @@
+# Prepared Verification Gates — Phase 1 (State + Event + Persistence Core)
+# Task: P0-W14-T01 (Phase 0 deliverable — preparation only; no production code)
+#
+# Per Phase Manifest §4.6 ("verification gates for Phase 1 are ready") and §5.5
+# (P1 gate required proofs). Each gate below is bound to its prepared task
+# contract in P1-prepared-task-contracts.yaml. Gate execution happens during P1;
+# this register makes the criteria binding before any code exists.
+
+phase: P1
+gate_version: "1.0"
+trust_classes: ["OBSERVED", "VERIFIED", "DOCUMENTED", "INFERRED", "UNKNOWN"]
+fail_closed_rule: "A proof not evidenced as OBSERVED/VERIFIED is NOT a pass. UNKNOWN never becomes PASS."
+
+gates:
+
+  - id: VG-P1-W01-T01
+    contract: P1-W01-T01
+    proofs:
+      - "legal transition accepted (deterministic test)"
+      - "illegal transition rejected with specific error (test exercises invalid transitions)"
+      - "transition semantics match AC-01 + AC-10 tables (table-diff check)"
+    phase_manifest_5_5_refs: ["deterministic transition tests"]
+
+  - id: VG-P1-W02-T01
+    contract: P1-W02-T01
+    proofs:
+      - "CancellationOutcome enum exists with exactly three values (Blueprint §14)"
+      - "type-level proof: no path writes cancellation detail into AttemptStatus"
+
+  - id: VG-P1-W03-T01
+    contract: P1-W03-T01
+    proofs:
+      - "append-only enforced; mutation attempt detected by chain verification (tamper test)"
+      - "event_hash recomputes over payload + previous_event_hash for N generated events"
+
+  - id: VG-P1-W04-T01
+    contract: P1-W04-T01
+    proofs:
+      - "anchor written at checkpoint cadence to separate storage"
+      - "load-time verification failure blocks auto-recovery (fail-closed test)"
+
+  - id: VG-P1-W05-T01
+    contract: P1-W05-T01
+    proofs:
+      - "atomic-write failure injection leaves no partial state observable (crash test)"
+      - "F-0001 regression: concurrent writers serialized, no lost update (test runs forever)"
+    phase_manifest_5_5_refs: ["atomic-write failure tests"]
+
+  - id: VG-P1-W06-T01
+    contract: P1-W06-T01
+    proofs:
+      - "interruption mid-outbox → restart completes or reconciles intent, never loses it"
+    phase_manifest_5_5_refs: ["outbox interruption tests"]
+
+  - id: VG-P1-W07-T01
+    contract: P1-W07-T01
+    proofs:
+      - "retry after recorded key detects 'already applied'"
+      - "store cannot upgrade IdempotencySupport (AC-11 separation asserted)"
+    phase_manifest_5_5_refs: ["idempotency tests"]
+
+  - id: VG-P1-W08-T01
+    contract: P1-W08-T01
+    proofs:
+      - "sequence strictly monotonic across simulated crash-restart cycle"
+    phase_manifest_5_5_refs: ["sequence monotonicity tests"]
+
+  - id: VG-P1-W09-T01
+    contract: P1-W09-T01
+    proofs:
+      - "correlation ID propagation end-to-end mission→tool_call observed in event log sample"
+      - "audit: zero independent ad hoc ID systems introduced"
+    phase_manifest_5_5_refs: ["correlation-ID propagation tests"]
+
+  - id: VG-P1-W10-T01
+    contract: P1-W10-T01
+    proofs:
+      - "every persisted record carries schema_version (schema scan)"
+      - "unknown version fails closed (rejection test)"
+    phase_manifest_5_5_refs: ["schema-version tests"]
+
+  - id: VG-P1-W11-T01
+    contract: P1-W11-T01
+    proofs:
+      - "console renders live mission/event/state truth from real stores"
+      - "console mutations pass capability boundary (denial observable as event)"
+
+  - id: VG-P1-PHASE-GATE
+    scope: whole-phase
+    requires:
+      - "all task gates VG-P1-W01..W11 passed"
+      - "existing regression corpus remains passing (incl. F-0001 forever-test)"
+      - "phase-level architecture audit: no later integration bypassed the State Engine"
+      - "persistence restart tests green (Phase Manifest §5.5)"

@@ -1,0 +1,79 @@
+# Task Contract — P1-W02-T01
+
+```yaml
+contract_version: 1
+id: P1-W02-T01
+phase: P1
+status: IMPLEMENTED
+
+authority:
+  blueprint: "2.4"
+  protocol: "1.0"
+  phase_manifest: "1.0"
+
+section_refs:
+  - "Blueprint §14 (Cancellation Semantics)"
+  - "AC-05 §4 boundary rules"
+  - "Phase Manifest P1-W02"
+  - ".ai-conductor-build/task_contracts/P1-prepared-task-contracts.yaml (P1-W02-T01)"
+
+objective: >
+  Implement CancellationOutcome as its own enum with type-level separation
+  from AttemptStatus.
+
+allowed_files:
+  - "PROJECT/crates/conductor-kernel/src/cancellation.rs"
+  - "PROJECT/crates/conductor-kernel/src/lib.rs"
+  - ".ai-conductor-build/task_contracts/P1-W02-T01.yaml"
+  - ".ai-conductor-build/verification_reports/P1-W02-T01.md"
+  - ".ai-conductor-build/BUILD_STATE.json"
+
+forbidden_files:
+  - "PROJECT/crates/conductor-kernel/src/state.rs"
+  - "BLUEPRINT/**"
+  - "GOVERNANCE/**"
+  - "FAILURE_MEMORY/**"
+  - "KNOWLEDGE/**"
+  - "48 HOURS/**"
+
+forbidden_actions:
+  - "editing governing documents"
+  - "adding variants to AttemptStatus"
+  - "any I/O or clock reads in conductor-kernel"
+
+dependencies:
+  - "P1-W01-T01 accepted"
+
+preconditions:
+  - "Phase 1 active."
+
+inputs:
+  - "Blueprint §14 v2.3 correction + auditability paragraph."
+
+outputs:
+  - "conductor-kernel::cancellation::CancellationOutcome."
+
+implementation_requirements:
+  - "Exactly three values verbatim per Blueprint §14."
+  - "No conversion to/from AttemptStatus in either direction."
+  - "Recovery consequence helpers reflect §14 + AC-05 §3 repair routing."
+  - "Five audit-stage names as a typed constant."
+
+invariants_preserved: ["2","8","11"]
+invariants_proven: []
+
+required_tests:
+  - "cargo test: identity separation, recovery consequences, stage list, authority."
+
+acceptance:
+  - "All VG-P1-W02-T01 proofs evidenced; W01 tests still passing."
+
+non_goals:
+  - "Cancellation sequencing mechanics (process termination, P4+); event emission."
+
+risk_level: low
+
+done_when:
+  - "Enum exists with three values; zero leakage into AttemptStatus provable at
+     type level and by tests; full suite green."
+```

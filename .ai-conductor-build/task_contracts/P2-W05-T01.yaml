@@ -1,0 +1,154 @@
+# Task Contract — P2-W05-T01
+
+```yaml
+contract_version: 1
+id: P2-W05-T01
+phase: P2
+status: IMPLEMENTED
+
+authority:
+  blueprint: "2.5.1"
+  protocol: "1.1"
+  phase_manifest: "1.1"
+
+section_refs:
+  - "Blueprint §4.6 (Mutation Attribution)"
+  - "Blueprint §3, Invariant 6 (\"user changes are protected\" -- requires
+     attribution, not just detection)"
+  - "Phase Manifest §6.3 P2-W05"
+
+objective: >
+  Implement mutation attribution per Blueprint §4.6: given a baseline, the
+  content an attempt produced, and the live workspace's current content,
+  classify each changed line-region as exactly one of
+  expected_conductor_change | unexpected_ai_change | user_change |
+  conflict_region -- at line-region granularity, not whole-file, since
+  whole-file classification (P2-W03's reconcile()) cannot tell "the AI
+  changed line 40" from "the user changed line 40" when both changed the
+  same file.
+
+allowed_files:
+  - "PROJECT/crates/conductor-kernel/**"
+  - ".ai-conductor-build/task_contracts/P2-W05-T01.yaml"
+  - ".ai-conductor-build/verification_reports/P2-W05-T01.md"
+  - ".ai-conductor-build/BUILD_STATE.json"
+
+forbidden_files:
+  - "BLUEPRINT/**"
+  - "GOVERNANCE/**"
+  - "FAILURE_MEMORY/**"
+  - "KNOWLEDGE/**"
+  - "48 HOURS/**"
+
+forbidden_actions:
+  - "editing governing documents"
+  - "implementing the conflict-halt policy (Blueprint §4.3's Conflict
+     outcome, P2-W06) -- this task produces conflict_region
+     classifications as data; P2-W06 owns turning 'a conflict_region
+     exists' into 'halt, don't auto-resolve'"
+  - "wiring this into the real attempt lifecycle end-to-end (how a
+     caller obtains three physical snapshots -- baseline, AI result,
+     live-current -- from a real running attempt) -- this task takes
+     those three snapshots as already-available inputs (file content
+     strings, or three directory roots that already contain them) and
+     classifies from there; acquiring the snapshots at the right moments
+     during a real attempt's lifecycle is orchestration wiring that
+     belongs with whichever task actually drives that lifecycle
+     (P2-W07 / Phase 5), not this one"
+  - "implementing a custom diff algorithm -- must use real `git diff
+     --no-index`, consistent with this crate's established discipline
+     (P2-W01's real `git worktree`) of using real Git behavior rather
+     than a reimplementation that could silently diverge from it"
+
+dependencies:
+  - "P2-W03-T01 (reconciliation engine) -- reuses ExpectedOperation to
+     decide expected_conductor_change vs unexpected_ai_change."
+
+preconditions:
+  - "Phase 2 active."
+  - "ExpectedOperation exists (P2-W03)."
+
+inputs:
+  - "Blueprint §4.6's four-step diagram and four-category classification,
+     reproduced verbatim."
+
+outputs:
+  - "conductor-kernel::mutation_attribution -- RegionClassification (the
+     four Blueprint §4.6 categories), MutationAttribution{path, range,
+     classification}, and attribute_mutations(path, baseline_content,
+     ai_result_content, live_content, expected) -> Vec<MutationAttribution>,
+     using real `git diff --no-index` to compute line-accurate hunks
+     rather than a custom diff."
+
+implementation_requirements:
+  - "Hunks are computed via two real `git diff --no-index --unified=0`
+     invocations against the same baseline_content: one against
+     ai_result_content (the AI's diff), one against live_content (the
+     user's diff). Both hunk sets are anchored to the SAME baseline line
+     numbers, which is what makes direct region-overlap comparison
+     between them meaningful."
+  - "A region touched only in the AI diff, in a file within
+     expected.files, classifies as ExpectedConductorChange; touched only
+     in the AI diff, file NOT in expected.files, classifies as
+     UnexpectedAiChange."
+  - "A region touched only in the user diff (live differs from baseline,
+     AI diff doesn't touch that range) classifies as UserChange."
+  - "A region touched in BOTH diffs, with overlapping baseline line
+     ranges, classifies as ConflictRegion -- regardless of whether the
+     two diffs made the same edit or different ones; Blueprint §4.6 does
+     not distinguish 'same edit, coincidentally' from 'different edits'
+     at this layer, and inventing that distinction without a stated
+     requirement would be scope creep into P2-W06's territory."
+  - "A pure-insertion hunk (`git diff`'s `-N,0` form, no baseline lines
+     actually consumed) is treated, for overlap-detection purposes only,
+     as claiming its anchor line -- the safe direction to round: this
+     can only cause an extra region to be flagged ConflictRegion that a
+     stricter reading might not, never the reverse, and under-flagging a
+     real conflict is exactly what Invariant 11 (no silent
+     auto-resolution) forbids."
+  - "Files where neither diff shows any change are absent from the
+     result entirely -- no Unchanged-equivalent region is emitted (unlike
+     baseline.rs's diff_full, mutation attribution has no caller that
+     needs the full unchanged set; emitting it here would be dead
+     surface area)."
+
+invariants_preserved: ["1", "2", "6", "8", "11"]
+invariants_proven: ["6"]
+
+required_tests:
+  - "cargo test: exercising real `git diff --no-index` (temp files, no
+     mocked diff output) for each of the four classifications in
+     isolation, a same-file-disjoint-regions case (AI and user each
+     touch different lines of the same file -- must NOT be a conflict),
+     an overlapping-region conflict case, a pure-insertion-vs-insertion
+     adjacency edge case, and a no-changes-anywhere case producing an
+     empty result."
+
+acceptance:
+  - "All VG-P2-W05-T01 proofs evidenced in verification report."
+
+non_goals:
+  - "Conflict detection / halt policy (P2-W06); person decision path
+     (P2-W07); wiring three-snapshot acquisition into a real attempt
+     lifecycle (Phase 5 orchestration)."
+
+risk_level: medium
+risk_notes: >
+  Second module in the crate (after P2-W01's worktree.rs) with an
+  external-process dependency (`git diff --no-index`), and the first to
+  parse that process's output rather than just checking its exit code --
+  a genuinely new failure surface (malformed/unexpected diff output) that
+  worktree.rs didn't have. Mitigated by testing against real git output
+  only, never synthetic/hand-written diff text, and by explicit tests for
+  the edge cases (pure insertions, adjacency) most likely to expose a
+  parsing assumption that doesn't hold.
+
+done_when:
+  - "attribute_mutations correctly classifies all four Blueprint §4.6
+     categories against real git-diff output, proven per-category by
+     dedicated tests. Two changes in the same file at disjoint line
+     ranges are proven NOT to be misclassified as a conflict. Overlapping
+     ranges are proven to produce ConflictRegion. The pure-insertion
+     edge case's conservative-overlap rule is proven directly, not just
+     asserted in a doc comment."
+```
