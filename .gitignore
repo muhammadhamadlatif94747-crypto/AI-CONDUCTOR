@@ -1,0 +1,11 @@
+# Build-state runtime artifacts (evidence is committed; volatile output is not)
+.ai-conductor-build/diagnostics/
+target/
+PROJECT/target/
+target-*/
+PROJECT/target-*/
+node_modules/
+*.log
+.env
+.env.*
+*.secret
